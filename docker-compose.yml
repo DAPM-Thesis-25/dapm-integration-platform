@@ -1,0 +1,129 @@
+version: "3.8"
+
+services:
+  postgres_orga:
+    image: postgres:14
+    container_name: dapm_postgres_orga
+    environment:
+      POSTGRES_USER: orga_user
+      POSTGRES_PASSWORD: orga_pass
+      POSTGRES_DB: orga_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - orga_data:/var/lib/postgresql/data
+    networks:
+      - dapm_network
+
+  postgres_orgb:
+    image: postgres:14
+    container_name: dapm_postgres_orgb
+    environment:
+      POSTGRES_USER: orgb_user
+      POSTGRES_PASSWORD: orgb_pass
+      POSTGRES_DB: orgb_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - orgb_data:/var/lib/postgresql/data
+    networks:
+      - dapm_network
+  postgres_orgc:
+    image: postgres:14
+    container_name: dapm_postgres_orgc
+    environment:
+      POSTGRES_USER: orgc_user
+      POSTGRES_PASSWORD: orgc_pass
+      POSTGRES_DB: orgc_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - orgc_data:/var/lib/postgresql/data
+    networks:
+      - dapm_network
+
+  dapm_orga:
+    build: .
+    container_name: orga
+    environment:
+      - dapm.defaultOrgName=OrgA
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dapm_postgres_orga:5432/orga_db
+      - SPRING_DATASOURCE_USERNAME=orga_user
+      - SPRING_DATASOURCE_PASSWORD=orga_pass
+      - spring.jpa.hibernate.ddl-auto=update
+      - spring.jpa.show-sql=true
+      - runtime.templates.root=/runtime-templates
+      - runtime.configs.root=/runtime-configs
+      # === point to Kafka inside docker network (NOT localhost) ===
+      - organization.broker.port=kafka-A:9092
+    volumes:
+      - ./runtime-templates/orga:/runtime-templates
+      - ./runtime-configs/orga:/runtime-configs
+    ports:
+      - "8081:8080"  # Mapping internal port 8080 to external port 8081
+    depends_on:
+      - postgres_orga
+    networks:
+      - dapm_network
+      - kafka-cluster
+
+  dapm_orgb:
+    build: .
+    container_name: orgb
+    environment:
+      - dapm.defaultOrgName=OrgB
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dapm_postgres_orgb:5432/orgb_db
+      - SPRING_DATASOURCE_USERNAME=orgb_user
+      - SPRING_DATASOURCE_PASSWORD=orgb_pass
+      - spring.jpa.hibernate.ddl-auto=update
+      - spring.jpa.show-sql=true
+      - runtime.templates.root=/runtime-templates
+      - runtime.configs.root=/runtime-configs
+      # === point to Kafka inside docker network (NOT localhost) ===
+      - organization.broker.port=kafka-B:9082
+    volumes:
+      - ./runtime-templates/orgb:/runtime-templates
+      - ./runtime-configs/orgb:/runtime-configs
+    ports:
+      - "8082:8080"  # Mapping internal port 8080 to external port 8082
+    depends_on:
+      - postgres_orgb
+    networks:
+      - dapm_network
+      - kafka-cluster
+
+  dapm_orgc:
+    build: .
+    container_name: orgc
+    environment:
+      - dapm.defaultOrgName=OrgC
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://dapm_postgres_orgc:5432/orgc_db
+      - SPRING_DATASOURCE_USERNAME=orgc_user
+      - SPRING_DATASOURCE_PASSWORD=orgc_pass
+      - spring.jpa.hibernate.ddl-auto=update
+      - spring.jpa.show-sql=true
+      - runtime.templates.root=/runtime-templates
+      - runtime.configs.root=/runtime-configs
+      # === point to Kafka inside docker network (NOT localhost) ===
+      - organization.broker.port=kafka-C:9072
+    volumes:
+      - ./runtime-templates/orgc:/runtime-templates
+      - ./runtime-configs/orgc:/runtime-configs
+    ports:
+      - "8083:8080"  # Expose as 8083 externally
+    depends_on:
+      - postgres_orgc
+    networks:
+      - dapm_network
+      - kafka-cluster
+
+volumes:
+  orga_data:
+  orgb_data:
+  orgc_data:
+
+networks:
+  dapm_network:
+    driver: bridge
+  kafka-cluster:
+    external: true
