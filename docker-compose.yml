@@ -56,9 +56,12 @@ services:
       - runtime.configs.root=/runtime-configs
       # === point to Kafka inside docker network (NOT localhost) ===
       - organization.broker.port=kafka-A:9092
+      - PETRINET_OUTPUT_DIR=/runtime-outputs
     volumes:
       - ./runtime-templates/orga:/runtime-templates
       - ./runtime-configs/orga:/runtime-configs
+        # NEW: host folder for outputs
+      - ./outputs/orga:/runtime-outputs
     ports:
       - "8081:8080"  # Mapping internal port 8080 to external port 8081
     depends_on:

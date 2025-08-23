@@ -8,6 +8,12 @@ import communication.message.serialization.deserialization.MessageFactory;
 import pipeline.processingelement.Configuration;
 import pipeline.processingelement.operator.MiningOperator;
 import utils.Pair;
+import org.springframework.core.io.ClassPathResource;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 
 import java.io.*;
 import java.util.HashMap;
@@ -33,22 +39,32 @@ public class HeuristicsMiner extends MiningOperator<PetriNet> {
     }
 
     private void startProcess() {
-        synchronized (processLock) {
-            try {
-                if (process == null || !process.isAlive()) {
-                    String jarPath = "orgB/src/main/java/templates/algorithm/heuristics-miner.jar";
-                    ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", jarPath);
+    synchronized (processLock) {
+        try {
+            if (process == null || !process.isAlive()) {
+                // Load JAR from classpath and extract to a temp file
+                try (InputStream is = new org.springframework.core.io.ClassPathResource("algorithms/heuristics-miner.jar").getInputStream()) {
+                    java.nio.file.Path tmp = java.nio.file.Files.createTempFile("heuristics-miner-", ".jar");
+                    try (OutputStream os = java.nio.file.Files.newOutputStream(tmp, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING)) {
+                        is.transferTo(os);
+                    }
+                    tmp.toFile().deleteOnExit(); // optional
+
+                    // Run the extracted JAR
+                    ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", tmp.toAbsolutePath().toString());
                     processBuilder.redirectErrorStream(true);
                     process = processBuilder.start();
 
                     jarInput = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
                     jarOutput = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 }
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to start JAR process", e);
             }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to start JAR process", e);
         }
     }
+}
+
 
 
     @Override

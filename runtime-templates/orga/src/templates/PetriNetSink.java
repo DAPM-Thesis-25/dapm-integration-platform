@@ -31,20 +31,31 @@ public class PetriNetSink extends Sink {
         super(configuration);
     }
 
-    @Override
-    public void observe(Pair<Message, Integer> messageAndPortNumber) {
-        PetriNet petriNet = (PetriNet) messageAndPortNumber.first();
-        System.out.println("PetriNet has " + petriNet.getPlaces().size() + " places and " + petriNet.getTransitions().size() + " transitions.");
-        MutableGraph dotGraph = constructDotGraph(petriNet);
-        try {
-            fromGraph(dotGraph)
-                    .render(SVG)
-                    .toFile(new File("orgA/src/main/resources/sinks/outputs/petriNet.svg"));
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to render PetriNet", e);
+@Override
+public void observe(Pair<Message, Integer> messageAndPortNumber) {
+    PetriNet petriNet = (PetriNet) messageAndPortNumber.first();
+    System.out.println("PetriNet has " + petriNet.getPlaces().size() + " places and " + petriNet.getTransitions().size() + " transitions.");
+    MutableGraph dotGraph = constructDotGraph(petriNet);
+    try {
+        // Use env var set in docker-compose; fallback to /tmp/petrinet
+        String outDir = System.getenv().getOrDefault("PETRINET_OUTPUT_DIR", "/tmp/petrinet");
+        File dir = new File(outDir);
+        if (!dir.exists() && !dir.mkdirs()) {
+            throw new RuntimeException("Could not create output directory: " + outDir);
         }
+
+        File outFile = new File(dir, "petriNet.svg");
+        fromGraph(dotGraph)
+            .render(SVG)
+            .toFile(outFile);
+
+        System.out.println("PetriNet SVG written to: " + outFile.getAbsolutePath());
+    } catch (Exception e) {
+        throw new RuntimeException("Failed to render PetriNet", e);
     }
+}
+
+
 
     @Override
     protected Map<Class<? extends Message>, Integer> setConsumedInputs() {

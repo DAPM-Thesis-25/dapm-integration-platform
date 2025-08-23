@@ -1,0 +1,18 @@
+{
+  "processing elements":[
+    { "organizationID": "orgA", "hostURL": "http://orga:8080", "templateID": "SimpleSource", "inputs": [], "output": "Event", "instanceNumber": 1, "configuration": {} },
+    { "organizationID": "orgB", "hostURL": "http://orgb:8080", "templateID": "DockerSink",  "inputs": ["Event"],  "output": null,  "instanceNumber": 1, "configuration": {"imageID":  "docker-image-ID"} }
+  ],
+
+  "channels": [
+    {
+      "publisher": { "organizationID": "orgA", "hostURL": "http://orga:8080", "templateID": "SimpleSource", "inputs": [], "output": "Event", "instanceNumber": 1, "configuration": {} },
+      "subscribers": [
+        {
+          "processing element": { "organizationID": "orgB", "hostURL": "http://orgb:8080", "templateID": "DockerSink",  "inputs": ["Event"],  "output": null,  "instanceNumber": 1, "configuration": {"imageID":  "docker-image-ID"} },
+          "portNumber": 1
+        }
+      ]
+    }
+  ]
+}
