@@ -62,7 +62,6 @@ public  class HandshakeController {
         public void setToken(String token) { this.token = token; }
     }
 
-
     public static class HandshakeResponse {
         private String token;
         private List<ProcessingElementDto> templates;
