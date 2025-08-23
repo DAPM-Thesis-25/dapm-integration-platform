@@ -135,15 +135,15 @@ public class ConfigSchemaController {
         System.out.println(validatedPipeline+ "I am here");
 
         executionService.start(pipelineID);
-//        try {
-//            Thread.sleep(30000); // 1 minute = 60,000 ms
-//        } catch (InterruptedException ie) {
-//            Thread.currentThread().interrupt(); // restore interrupt flag
-//        }
-//        executionService.terminate(pipelineID);
+        try {
+            Thread.sleep(30000); // 1 minute = 60,000 ms
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt(); // restore interrupt flag
+        }
+        executionService.terminate(pipelineID);
         System.out.println("Terminate");
 
 
-        return "Fuck";
+        return "Executed for 30s";
     }
 }
