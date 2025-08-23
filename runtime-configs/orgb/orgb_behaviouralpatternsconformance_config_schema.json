@@ -1,8 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://www.dapm.org/config/orgb_behaviouralpatternsconformance_config_schema.json",
-  "title": "orgB BehaviouralPatternsConformance Config",
-  "type": "object",
-  "properties": {},
-  "additionalProperties": false
-}
