@@ -1,6 +1,7 @@
 package com.dapm.security_service.repositories;
 
 import com.dapm.security_service.models.ProcessingElement;
+import com.dapm.security_service.models.Project;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,6 +17,8 @@ public interface ProcessingElementRepository extends JpaRepository<ProcessingEle
 
     // For POST: lookup specific PE by its ID
     Optional<ProcessingElement> findById(UUID id);
+    List<ProcessingElement> findByVisibilityContaining(String org);
+
 
     // Find by template ID
     Optional<ProcessingElement> findByTemplateId(String templateId);

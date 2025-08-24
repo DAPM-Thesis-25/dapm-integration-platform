@@ -1,6 +1,6 @@
-package com.dapm.security_service.controllers.ClientApi;
+package com.dapm.security_service.controllers.Client2Api;
 
-import com.dapm.security_service.controllers.PeerApi.HandshakeController;
+import com.dapm.security_service.controllers.PeerApi2.PeerHandshakeController;
 import com.dapm.security_service.models.PartnerOrganization;
 import com.dapm.security_service.repositories.PartnerOrganizationRepository;
 import com.dapm.security_service.security.CustomUserDetails;
@@ -100,13 +100,13 @@ public class HandshakeClientController {
             String jwtA = tokenService.generateHandshakeToken(300);
 
             // b) Build request payload
-            HandshakeController.HandshakeRequest req = new HandshakeController.HandshakeRequest();
+            PeerHandshakeController.HandshakeRequest req = new PeerHandshakeController.HandshakeRequest();
             req.setToken(jwtA);
 
             // c) Call peer handshake endpoint with dynamic org host
             String url = buildPeerUrl(orgName);
-            HandshakeController.HandshakeResponse resp =
-                    restTemplate.postForObject(url, req, HandshakeController.HandshakeResponse.class);
+            PeerHandshakeController.HandshakeResponse resp =
+                    restTemplate.postForObject(url, req, PeerHandshakeController.HandshakeResponse.class);
 
             if (resp == null || resp.getToken() == null) {
                 return HandshakeResult.fail("Peer response was empty or missing token.");

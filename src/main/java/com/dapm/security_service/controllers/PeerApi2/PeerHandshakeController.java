@@ -1,6 +1,5 @@
-package com.dapm.security_service.controllers.PeerApi;
+package com.dapm.security_service.controllers.PeerApi2;
 import com.dapm.security_service.models.PartnerOrganization;
-import com.dapm.security_service.models.dtos.ProcessingElementDto;
 import com.dapm.security_service.repositories.PartnerOrganizationRepository;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
 import com.dapm.security_service.services.TokenService;
@@ -9,13 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/peer")
-public  class HandshakeController {
+public  class PeerHandshakeController {
 
     private final TokenService tokenService;
     private final TokenVerificationService verificationService;
@@ -24,9 +21,9 @@ public  class HandshakeController {
     private PartnerOrganizationRepository partnerOrganizationRepository;
 
     @Autowired
-    public HandshakeController(TokenService tokenService,
-                               TokenVerificationService verificationService,
-                               ProcessingElementRepository peRepository) {
+    public PeerHandshakeController(TokenService tokenService,
+                                   TokenVerificationService verificationService,
+                                   ProcessingElementRepository peRepository) {
         this.tokenService = tokenService;
         this.verificationService = verificationService;
         this.peRepository = peRepository;
@@ -60,7 +57,7 @@ public  class HandshakeController {
 //    }
 
         @PostMapping("/handshake")
-    public ResponseEntity<HandshakeResponse> handshake(@RequestBody HandshakeRequest request) {
+        public ResponseEntity<HandshakeResponse> handshake(@RequestBody HandshakeRequest request) {
         // 1. Verify incoming token and extract callerOrg
         String callerOrg = verificationService.verifyTokenAndGetOrganization(request.getToken());
 
