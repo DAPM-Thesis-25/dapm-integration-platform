@@ -45,7 +45,7 @@ public class VisiblePeClient {
                     .postForObject(handshakeUrl, req, HandshakeResponse.class);
 
             // d) Update cache and expiry (e.g. refresh 60s before actual expiry)
-            cache = resp.getTemplates();
+//            cache = resp.getTemplates();
             cacheExpiry = Instant.now().plusSeconds(240); // 4 minutes
         }
 

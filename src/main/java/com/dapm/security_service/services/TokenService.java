@@ -35,6 +35,7 @@ public class TokenService {
     @PostConstruct
     public void init() {
         try {
+
             String privateKeyPEM = privateKeyString
                     .replace("-----BEGIN PRIVATE KEY-----", "")
                     .replace("-----END PRIVATE KEY-----", "")
@@ -106,6 +107,7 @@ public class TokenService {
     }
 
     public String generateHandshakeToken(long ttlSeconds) {
+        System.out.println("I will be hashed "+orgId);
         Instant now = Instant.now();
         return Jwts.builder()
                 .setIssuer(orgId)
