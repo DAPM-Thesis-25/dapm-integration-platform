@@ -32,6 +32,7 @@ public class SecurityConfig {
                                 "/api/auth/authenticate",
                                 "/api/client/pipeline-processingElement/webhook",
                                 "/api/peer/**",
+                                "/peer/**",
                                 "/pipelineBuilder/**",
                                 "/pipelineExecution/**",
                                 "/swagger-ui/**",

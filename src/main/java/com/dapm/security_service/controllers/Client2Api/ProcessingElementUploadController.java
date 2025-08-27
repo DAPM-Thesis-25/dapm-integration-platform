@@ -1,12 +1,17 @@
-package com.dapm.security_service.runtime;
+package com.dapm.security_service.controllers.Client2Api;
 
+import com.dapm.security_service.models.Organization;
+import com.dapm.security_service.repositories.OrganizationRepository;
+import com.dapm.security_service.repositories.ProcessingElementRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +25,8 @@ import java.net.URLClassLoader;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,16 +36,35 @@ import repository.TemplateRepository;
 
 @RestController
 @RequestMapping("/templates")
-public class TemplateUploadController {
+public class ProcessingElementUploadController {
 
     @Value("${runtime.templates.root:/runtime-templates}")
     private String rootDir;
 
+    @Value("${dapm.defaultOrgName}")
+    private String orgName;
+
+
+
+    @Value("${runtime.configs.root:/runtime-configs}")
+    private String condigDir;
+
+    @Autowired
+    private ProcessingElementRepository processingElementRepository;
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
     private final TemplateRepository repo;
 
-    public TemplateUploadController(TemplateRepository repo) {
+    public ProcessingElementUploadController(TemplateRepository repo) {
         this.repo = repo;
     }
+
+    private Path root() {
+        return Path.of(condigDir).toAbsolutePath().normalize();
+    }
+
 
     public static String getFileNameWithoutExtension(MultipartFile file) {
         String originalFilename = file.getOriginalFilename(); // e.g., "example.txt"
@@ -55,12 +81,12 @@ public class TemplateUploadController {
     }
 
     @PostMapping(
-            value = "/uploadJavaFile",
+            value = "/uploadNewProcessingElement",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @Operation(summary = "Upload a Java source file and register it as a ProcessingElement template")
     public ResponseEntity<String> uploadJavaFile(
-            @RequestPart("file")
+            @RequestPart("template")
             @Parameter(
                     description = "Java source file (*.java)",
                     content = @Content(
@@ -68,12 +94,33 @@ public class TemplateUploadController {
                             schema = @Schema(type = "string", format = "binary")
                     )
             )
-            MultipartFile file
+            MultipartFile file,
+            @RequestPart("configSchema") MultipartFile file2
     ) throws Exception {
 
         if (file == null || file.isEmpty()) {
             return ResponseEntity.badRequest().body("No file uploaded.");
         }
+
+        // upload configuration file
+        if (file2 == null || file2.isEmpty()) {
+            return ResponseEntity.badRequest().body("No file uploaded.");
+        }
+        String originalName = file2.getOriginalFilename();
+        if (!StringUtils.hasText(originalName)) {
+            return ResponseEntity.badRequest().body("Filename is missing.");
+        }
+
+        // ensure root exists
+        Files.createDirectories(root());
+
+        // protect against path traversal (../) while still keeping the original name
+        Path dest = root().resolve(Paths.get(originalName).getFileName().toString()).normalize();
+        if (!dest.startsWith(root())) {
+            return ResponseEntity.badRequest().body("Invalid filename.");
+        }
+
+
 
         // Prepare directories
         Path srcRoot = Path.of(rootDir, "src");
@@ -133,11 +180,33 @@ public class TemplateUploadController {
         }
         // Must declare ctor(Configuration)
         cls.getDeclaredConstructor(Configuration.class);
+        Files.copy(file2.getInputStream(), dest, StandardCopyOption.REPLACE_EXISTING);
+
 
         // Register in TemplateRepository
         @SuppressWarnings("unchecked")
         Class<? extends ProcessingElement> peClass = (Class<? extends ProcessingElement>) cls;
         repo.storeTemplate(templateID, peClass);
+
+        // save configuration file
+        Files.copy(file2.getInputStream(), dest, StandardCopyOption.REPLACE_EXISTING);
+
+        Organization org=organizationRepository.findByName(orgName)
+                .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + orgName));
+        if(org == null) {
+            return ResponseEntity.badRequest().body("Organization not found: " + orgName);
+        }
+        // create a new ProcessingElement
+        com.dapm.security_service.models.ProcessingElement peB = com.dapm.security_service.models.ProcessingElement.builder()
+                .id(UUID.randomUUID())
+                .ownerOrganization(org)
+                .templateId(templateID)
+                .inputs(Set.of()) // You can set inputs as needed
+                .outputs(Set.of()) // You can set outputs as needed
+                .visibility(Set.of("OrgA","OrgC")) // Visible to the owner organization
+                .build();
+        // save the ProcessingElement to the repository
+        processingElementRepository.save(peB);
 
         return ResponseEntity.ok("Uploaded, compiled, loaded, and registered: " + templateID + " -> " + fqcn);
     }
