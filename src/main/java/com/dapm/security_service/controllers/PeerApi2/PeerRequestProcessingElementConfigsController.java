@@ -1,10 +1,10 @@
 package com.dapm.security_service.controllers.PeerApi2;
 
-import com.dapm.security_service.models.PartnerOrganization;
 import com.dapm.security_service.models.ProcessingElement;
+import com.dapm.security_service.models.SubscriberOrganization;
 import com.dapm.security_service.models.dtos2.GetPeerRequest;
-import com.dapm.security_service.repositories.PartnerOrganizationRepository;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
+import com.dapm.security_service.repositories.SubscriberOrganizationRepository;
 import com.dapm.security_service.services.TokenService;
 import com.dapm.security_service.services.TokenVerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ public class PeerRequestProcessingElementConfigsController {
     @Autowired
     private ProcessingElementRepository peRepository;
     @Autowired
-    private PartnerOrganizationRepository partnerOrganizationRepository;
+    private SubscriberOrganizationRepository partnerOrganizationRepository;
     @Value("${dapm.defaultOrgName}")
     private String orgName;
 
@@ -48,7 +48,7 @@ public class PeerRequestProcessingElementConfigsController {
         if (callerOrg == null || callerOrg.isBlank()) {
             return ResponseEntity.badRequest().body("Invalid or missing token.");
         }
-        PartnerOrganization partnerOrg = partnerOrganizationRepository.findByName(callerOrg)
+        SubscriberOrganization partnerOrg = partnerOrganizationRepository.findByName(callerOrg)
                 .orElseThrow(() -> new IllegalArgumentException("Partner Organization not found or handshake not completed."));
 
         // 2. Fetch visible PE templates

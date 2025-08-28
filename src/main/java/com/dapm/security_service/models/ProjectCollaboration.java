@@ -24,7 +24,7 @@ public class ProjectCollaboration {
     private Organization organization;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "partner_organization_id")
-    private PartnerOrganization partnerOrganization;
+    @JoinColumn(name = "publisher_organization_id")
+    private PublisherOrganization partnerOrganization;
 
 }

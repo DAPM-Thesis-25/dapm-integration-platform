@@ -1,10 +1,12 @@
 package com.dapm.security_service.controllers.PeerApi2;
-import com.dapm.security_service.models.PartnerOrganization;
-import com.dapm.security_service.repositories.PartnerOrganizationRepository;
+import com.dapm.security_service.models.SubscriberOrganization;
+import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
+import com.dapm.security_service.repositories.SubscriberOrganizationRepository;
 import com.dapm.security_service.services.TokenService;
 import com.dapm.security_service.services.TokenVerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +20,7 @@ public  class PeerHandshakeController {
     private final TokenVerificationService verificationService;
     private final ProcessingElementRepository peRepository;
     @Autowired
-    private PartnerOrganizationRepository partnerOrganizationRepository;
+    private SubscriberOrganizationRepository subscriberOrganizationRepository;
 
     @Autowired
     public PeerHandshakeController(TokenService tokenService,
@@ -56,22 +58,30 @@ public  class PeerHandshakeController {
 //        return ResponseEntity.ok(resp);
 //    }
 
-        @PostMapping("/handshake")
-        public ResponseEntity<HandshakeResponse> handshake(@RequestBody HandshakeRequest request) {
-        // 1. Verify incoming token and extract callerOrg
-        String callerOrg = verificationService.verifyTokenAndGetOrganization(request.getToken());
+    @PostMapping("/handshake")
+    public ResponseEntity<String> handshake(@RequestBody HandshakeRequest request) {
+        try {
+            // 1. Verify incoming token
+            String callerOrg = verificationService.verifyTokenAndGetOrganization(request.getToken());
 
-            if (callerOrg!=null){
-                partnerOrganizationRepository.findByName(callerOrg)
-                        .orElseGet(() -> partnerOrganizationRepository.save(new PartnerOrganization(UUID.randomUUID(),callerOrg)));
+            if (callerOrg != null) {
+                // 2. Save caller as partner if not already
+                subscriberOrganizationRepository.findByName(callerOrg)
+                        .orElseGet(() -> subscriberOrganizationRepository.save(
+                                new SubscriberOrganization(UUID.randomUUID(), callerOrg, Tier.FREE)
+                        ));
+
+                // 3. Just return OK
+                return ResponseEntity.ok("Handshake received from " + callerOrg);
+            } else {
+                return ResponseEntity.badRequest().body("Token verification failed.");
             }
-        // 3. Sign response token
-        String responseToken = tokenService.generateHandshakeToken(300);  // 5 minutes
-
-        // 4. Build and return payload
-        HandshakeResponse resp = new HandshakeResponse(responseToken);
-        return ResponseEntity.ok(resp);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error during handshake: " + e.getMessage());
+        }
     }
+
 
 
 

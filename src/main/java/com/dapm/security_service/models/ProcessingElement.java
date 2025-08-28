@@ -26,7 +26,7 @@ public class ProcessingElement {
     // The organization that owns this processing element.
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_partner_organization_id")
-    private PartnerOrganization ownerPartnerOrganization;
+    private PublisherOrganization ownerPartnerOrganization;
 
 
 

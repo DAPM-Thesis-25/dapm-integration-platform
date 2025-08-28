@@ -3,8 +3,10 @@ package com.dapm.security_service.services;
 import com.dapm.security_service.models.*;
 import com.dapm.security_service.models.dtos.PipelineDesignDto;
 import com.dapm.security_service.models.dtos.ProcessingElementDto;
+import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,10 +22,12 @@ public class PipelineDesignService {
     private final UserRepository userRepository;
     private final ProcessingElementRepository processingElementRepository;
     private final ProjectRepository projectRepository;
-    private final PartnerOrganizationRepository partnerOrganizationRepository;
     private final ProjectCollaborationRepository projectCollaborationRepository;
     private final ObjectMapper objectMapper;
     private final VisiblePeClient visiblePeClient;
+
+    @Autowired
+    private PublisherOrganizationRepository publisherOrganizationRepository;
 
     @Value("${dapm.defaultOrgName}")
     private String orgName;
@@ -34,7 +38,6 @@ public class PipelineDesignService {
             UserRepository userRepository,
             ProcessingElementRepository processingElementRepository,
             ObjectMapper objectMapper,
-            PartnerOrganizationRepository partnerOrganizationRepository,
             ProjectRepository projectRepository,
             ProjectCollaborationRepository projectCollaborationRepository,
             VisiblePeClient visiblePeClient
@@ -47,7 +50,6 @@ public class PipelineDesignService {
         this.visiblePeClient = visiblePeClient;
         this.projectCollaborationRepository = projectCollaborationRepository;
         this.projectRepository = projectRepository;
-        this.partnerOrganizationRepository = partnerOrganizationRepository;
     }
 
     public List<ProcessingElementDto> getAvailablePeTemplates(String org) {
@@ -59,8 +61,8 @@ public class PipelineDesignService {
 
         List<ProcessingElementDto> remoteDtos = visiblePeClient.getVisiblePEsFromOrgB(org);
         // now it is hardcoded to OrgB, but you can make it dynamic if needed
-        partnerOrganizationRepository.findByName("OrgB")
-                .orElseGet(() -> partnerOrganizationRepository.save(new PartnerOrganization(UUID.randomUUID(),"OrgB")));
+        publisherOrganizationRepository.findByName("OrgB")
+                .orElseGet(() -> publisherOrganizationRepository.save(new PublisherOrganization(UUID.randomUUID(),"OrgB", Tier.FREE)));
 
         Set<UUID> existingIds = localDtos.stream()
                 .map(ProcessingElementDto::getId)
@@ -143,8 +145,8 @@ public class PipelineDesignService {
         return organizationRepository.findByName(name)
                 .orElseThrow(() -> new RuntimeException("Organization '" + name + "' not found"));
     }
-    private PartnerOrganization getPartnerOrganization(String name) {
-        return partnerOrganizationRepository.findByName(name)
+    private PublisherOrganization getPartnerOrganization(String name) {
+        return publisherOrganizationRepository.findByName(name)
                 .orElseThrow(() -> new RuntimeException("Partner Organization '" + name + "' not found"));
     }
 
