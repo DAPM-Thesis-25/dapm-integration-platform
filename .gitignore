@@ -34,3 +34,5 @@ build/
 
 **/heuristics-miner.jar
 *.jar
+
+secrets
