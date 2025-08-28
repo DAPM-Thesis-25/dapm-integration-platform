@@ -57,14 +57,19 @@ services:
       - spring.jpa.show-sql=true
       - runtime.templates.root=/runtime-templates
       - runtime.configs.root=/runtime-configs
+      - ORG_KEYSTORE_PATH=/run/keys/signing-keystore.p12
       # === point to Kafka inside docker network (NOT localhost) ===
       - organization.broker.port=kafka-A:9092
       - PETRINET_OUTPUT_DIR=/runtime-outputs
+      - ORG_KEYSTORE_PASS=OrgaPass123
+      - ORG_KEY_ALIAS=orga-2025-08
+      - ORG_KID=OrgA#2025-08
     volumes:
       - ./runtime-templates/orga:/runtime-templates
       - ./runtime-configs/orga:/runtime-configs
         # NEW: host folder for outputs
       - ./outputs/orga:/runtime-outputs
+      - ./secrets/orga/signing-keystore.p12:/run/keys/signing-keystore.p12:ro
     ports:
       - "8081:8080"  # Mapping internal port 8080 to external port 8081
     depends_on:
@@ -88,11 +93,17 @@ services:
       - spring.jpa.show-sql=true
       - runtime.templates.root=/runtime-templates
       - runtime.configs.root=/runtime-configs
+      - ORG_KEYSTORE_PATH=/run/keys/signing-keystore.p12
       # === point to Kafka inside docker network (NOT localhost) ===
       - organization.broker.port=kafka-B:9082
+      - ORG_KEYSTORE_PASS=OrgbPass456
+      - ORG_KEY_ALIAS=orgb-2025-08
+      - ORG_KID=OrgB#2025-08
+
     volumes:
       - ./runtime-templates/orgb:/runtime-templates
       - ./runtime-configs/orgb:/runtime-configs
+      - ./secrets/orgb/signing-keystore.p12:/run/keys/signing-keystore.p12:ro
     ports:
       - "8082:8080"  # Mapping internal port 8080 to external port 8082
     depends_on:
@@ -113,11 +124,17 @@ services:
       - spring.jpa.show-sql=true
       - runtime.templates.root=/runtime-templates
       - runtime.configs.root=/runtime-configs
+      - ORG_KEYSTORE_PATH=/run/keys/signing-keystore.p12
+      - ORG_KEYSTORE_PASS=OrgcPass789
+      - ORG_KEY_ALIAS=orgc-2025-08
+      - ORG_KID=OrgC#2025-08
+
       # === point to Kafka inside docker network (NOT localhost) ===
       - organization.broker.port=kafka-C:9072
     volumes:
       - ./runtime-templates/orgc:/runtime-templates
       - ./runtime-configs/orgc:/runtime-configs
+      - ./secrets/orgc/signing-keystore.p12:/run/keys/signing-keystore.p12:ro
     ports:
       - "8083:8080"  # Expose as 8083 externally
     depends_on:

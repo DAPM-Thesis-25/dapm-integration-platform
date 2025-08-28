@@ -1,125 +1,105 @@
 package com.dapm.security_service.services;
 
-import com.dapm.security_service.config.OrganizationKeysConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class PublicKeysService {
-    private final Map<String, PublicKey> publicKeys;
-    private final String keyAlgorithm;
 
-    @Autowired
-    public PublicKeysService(OrganizationKeysConfig config,
-                             @Value("${org.security.key-algorithm:RSA}") String keyAlgorithm) {
-        this.keyAlgorithm = keyAlgorithm;
-        this.publicKeys = Collections.unmodifiableMap(
-                config.getKeys().entrySet().stream()
-                        .collect(Collectors.toMap(
-                                        Map.Entry::getKey,
-                                        e -> parsePublicKey(e.getValue())
-                                )
-                        ));
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    // cache: key is orgId#kid → PublicKey
+    private final Map<String, PublicKey> cache = new ConcurrentHashMap<>();
+
+    /**
+     * Extracts the key for a given org + kid.
+     * Caches once fetched from JWKS.
+     */
+    public PublicKey getKeyForOrg(String orgId, String kid) {
+        String cacheKey = orgId + "#" + kid;
+        return cache.computeIfAbsent(cacheKey, k -> fetchKey(orgId, kid));
     }
 
-    public PublicKey getPublicKey(String organizationId) {
-        return publicKeys.get(organizationId);
-    }
-
-    public Map<String, PublicKey> getAllPublicKeys() {
-        return publicKeys;
-    }
-
-    private PublicKey parsePublicKey(String pem) {
-        if (pem == null || pem.isBlank()) {
-            throw new SecurityException("Empty PEM string provided");
-        }
-
-        String publicKeyPEM = pem
-                .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "")
-                .replaceAll("\\s", "");
-
+    private PublicKey fetchKey(String orgId, String kid) {
         try {
-            byte[] encoded = Base64.getDecoder().decode(publicKeyPEM);
-            return createPublicKey(encoded);
-        } catch (IllegalArgumentException e) {
-            throw new SecurityException("Base64 decoding failed", e);
+            String url = buildJwksUrl(orgId);
+            JwksResponse response = restTemplate.getForObject(url, JwksResponse.class);
+
+            if (response == null || response.keys == null || response.keys.isEmpty()) {
+                throw new IllegalStateException("No keys found in JWKS for org " + orgId);
+            }
+
+            return response.keys.stream()
+                    .filter(jwk -> kid.equals(jwk.kid))
+                    .findFirst()
+                    .map(this::toPublicKey)
+                    .orElseThrow(() -> new IllegalStateException("No matching kid " + kid + " in JWKS for " + orgId));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch JWKS for " + orgId, e);
         }
     }
 
-    private PublicKey createPublicKey(byte[] encodedKey) {
+    private String buildJwksUrl(String orgId) {
+        System.out.println("http://" + orgId.toLowerCase() + ":8080/.well-known/jwks.json");
+        return "http://" + orgId.toLowerCase() + ":8080/.well-known/jwks.json";
+    }
+
+    private PublicKey toPublicKey(Jwk jwk) {
         try {
-            KeyFactory keyFactory = KeyFactory.getInstance(keyAlgorithm);
-            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encodedKey);
-            return keyFactory.generatePublic(keySpec);
-        } catch (NoSuchAlgorithmException e) {
-            throw new SecurityException("Unsupported algorithm: " + keyAlgorithm, e);
-        } catch (InvalidKeySpecException e) {
-            throw new SecurityException("Invalid key specification", e);
+            BigInteger modulus = new BigInteger(1, Base64.getUrlDecoder().decode(jwk.n));
+            BigInteger exponent = new BigInteger(1, Base64.getUrlDecoder().decode(jwk.e));
+            RSAPublicKeySpec spec = new RSAPublicKeySpec(modulus, exponent);
+            return KeyFactory.getInstance("RSA").generatePublic(spec);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to convert JWK to RSA PublicKey", ex);
         }
     }
 
-    private PrivateKey parsePrivateKey(String pem) {
-        if (pem == null || pem.isBlank()) {
-            throw new SecurityException("Empty PEM string provided for private key");
-        }
-
-        String privateKeyPEM = pem
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replaceAll("\\s", "");
-        try {
-            byte[] encoded = Base64.getDecoder().decode(privateKeyPEM);
-            KeyFactory keyFactory = KeyFactory.getInstance(keyAlgorithm);
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
-
-            return keyFactory.generatePrivate(keySpec);
-        } catch (NoSuchAlgorithmException e) {
-            throw new SecurityException("Unsupported algorithm: " + keyAlgorithm, e);
-        } catch (InvalidKeySpecException e) {
-            throw new SecurityException("Invalid private key specification", e);
-        } catch (IllegalArgumentException e) {
-            throw new SecurityException("Base64 decoding failed for private key", e);
-        }
+    /**
+     * Helper class for JWKS JSON mapping
+     */
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static class JwksResponse {
+        @JsonProperty("keys")
+        public List<Jwk> keys;
     }
 
-    public boolean testKeyPair(String organizationId, String privateKeyPem) {
-        PublicKey publicKey = getPublicKey(organizationId);
-        if (publicKey == null) {
-            throw new SecurityException("No public key found for organization: " + organizationId);
-        }
-        PrivateKey privateKey = parsePrivateKey(privateKeyPem);
-
-        try {
-            // Use SHA256withRSA (adjust if using a different algorithm)
-            Signature signature = Signature.getInstance("SHA256withRSA");
-            String testMessage = "Test message for key validation";
-
-            // Sign with the private key
-            signature.initSign(privateKey);
-            signature.update(testMessage.getBytes(StandardCharsets.UTF_8));
-            byte[] signedData = signature.sign();
-
-            // Verify with the public key
-            signature.initVerify(publicKey);
-            signature.update(testMessage.getBytes(StandardCharsets.UTF_8));
-
-            return signature.verify(signedData);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-            throw new SecurityException("Error during key pair testing", e);
-        }
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static class Jwk {
+        public String kty;
+        public String alg;
+        public String use;
+        public String kid;
+        public String n; // modulus
+        public String e; // exponent
     }
 
+    // --- Optional helper ---
+    // Decode JWT header (just Base64) to read kid without verifying
+    public static String extractKidFromToken(String token) {
+        String[] parts = token.split("\\.");
+        if (parts.length < 2) throw new IllegalArgumentException("Invalid JWT");
+        String headerJson = new String(Base64.getUrlDecoder().decode(parts[0]), StandardCharsets.UTF_8);
+        return headerJson.replaceAll(".*\"kid\"\\s*:\\s*\"([^\"]+)\".*", "$1");
+    }
+
+    // Decode JWT payload to read iss
+    public static String extractIssuerFromToken(String token) {
+        String[] parts = token.split("\\.");
+        if (parts.length < 2) throw new IllegalArgumentException("Invalid JWT");
+        String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+        return payloadJson.replaceAll(".*\"iss\"\\s*:\\s*\"([^\"]+)\".*", "$1");
+    }
 }

@@ -1,10 +1,10 @@
 package com.dapm.security_service.controllers.Client2Api;
 
-import com.dapm.security_service.models.Organization;
-import com.dapm.security_service.models.PartnerOrganization;
+
+import com.dapm.security_service.models.PublisherOrganization;
 import com.dapm.security_service.models.dtos2.GetPeerRequest;
-import com.dapm.security_service.repositories.PartnerOrganizationRepository;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
+import com.dapm.security_service.repositories.PublisherOrganizationRepository;
 import com.dapm.security_service.services.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,8 +41,9 @@ public class RequestPEConfigFromPeersController {
     @Autowired
     private ProcessingElementRepository processingElementRepository;
 
+
     @Autowired
-    private PartnerOrganizationRepository partnerOrganizationRepository;
+    private PublisherOrganizationRepository publisherOrganizationRepository;
 
     private String buildPeerUrl(String orgName) {
         return String.format("%s://%s:%d%s", syncScheme, orgName.toLowerCase(), syncPort, syncPath);
@@ -92,7 +93,7 @@ public class RequestPEConfigFromPeersController {
                     String orgName = parts[0];                 // "orgA"
                     String processingElementName = parts[1];   // "pipeline"
 
-                    PartnerOrganization org=partnerOrganizationRepository.findByName(req.orgName())
+                    PublisherOrganization org=publisherOrganizationRepository.findByName(req.orgName())
                             .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + req.orgName()));
                     if(org == null) {
                         return ResponseEntity.badRequest().body("Organization not found: " + req.orgName());

@@ -1,8 +1,9 @@
 package com.dapm.security_service.controllers.Client2Api;
 
 import com.dapm.security_service.controllers.PeerApi2.PeerHandshakeController;
-import com.dapm.security_service.models.PartnerOrganization;
-import com.dapm.security_service.repositories.PartnerOrganizationRepository;
+import com.dapm.security_service.models.PublisherOrganization;
+import com.dapm.security_service.models.enums.Tier;
+import com.dapm.security_service.repositories.PublisherOrganizationRepository;
 import com.dapm.security_service.security.CustomUserDetails;
 import com.dapm.security_service.services.TokenService;
 import com.dapm.security_service.services.TokenVerificationService;
@@ -47,7 +48,7 @@ public class HandshakeClientController {
     private String handshakePath;
 
     @Autowired
-    private PartnerOrganizationRepository partnerOrganizationRepository;
+    private PublisherOrganizationRepository publisherOrganizationRepository;
 
     @PostMapping("")
     @PreAuthorize("hasAuthority('CREATE_PROJECT')")
@@ -105,31 +106,23 @@ public class HandshakeClientController {
 
             // c) Call peer handshake endpoint with dynamic org host
             String url = buildPeerUrl(orgName);
-            PeerHandshakeController.HandshakeResponse resp =
-                    restTemplate.postForObject(url, req, PeerHandshakeController.HandshakeResponse.class);
+            restTemplate.postForLocation(url, req); // only care about status 200/201
 
-            if (resp == null || resp.getToken() == null) {
-                return HandshakeResult.fail("Peer response was empty or missing token.");
-            }
+            // d) If we reach here, peer accepted → save the org
+            publisherOrganizationRepository.findByName(orgName)
+                    .orElseGet(() -> publisherOrganizationRepository.save(
+                            new PublisherOrganization(UUID.randomUUID(), orgName, Tier.FREE)
+                    ));
 
-            // d) Verify peer's token and extract their org
-            String responseOrg = verificationService.verifyTokenAndGetOrganization(resp.getToken());
-            System.out.println("I am the verified"+responseOrg);
-            if (responseOrg != null) {
-                partnerOrganizationRepository.findByName(responseOrg)
-                        .orElseGet(() -> partnerOrganizationRepository.save(
-                                new PartnerOrganization(UUID.randomUUID(), responseOrg)
-                        ));
-                return HandshakeResult.ok(responseOrg);
-            }
+            return HandshakeResult.ok(orgName);
 
-            return HandshakeResult.fail("Token verification failed or organization was null.");
         } catch (RestClientException rce) {
             return HandshakeResult.fail("HTTP error calling peer: " + rce.getMessage());
         } catch (Exception ex) {
             return HandshakeResult.fail("Handshake failed: " + ex.getMessage());
         }
     }
+
 
     // Simple internal result holder (no new file)
     private static class HandshakeResult {
