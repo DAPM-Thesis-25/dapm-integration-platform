@@ -1,6 +1,7 @@
 package com.dapm.security_service.controllers.Client2Api;
 
 import com.dapm.security_service.models.Organization;
+import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.OrganizationRepository;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -95,8 +96,9 @@ public class ProcessingElementUploadController {
                     )
             )
             MultipartFile file,
-            @RequestPart("configSchema") MultipartFile file2
-    ) throws Exception {
+            @RequestPart("configSchema") MultipartFile file2,
+            @RequestParam(value = "tier", required = false) Tier tier
+            ) throws Exception {
 
         if (file == null || file.isEmpty()) {
             return ResponseEntity.badRequest().body("No file uploaded.");
@@ -203,7 +205,7 @@ public class ProcessingElementUploadController {
                 .templateId(templateID)
                 .inputs(Set.of()) // You can set inputs as needed
                 .outputs(Set.of()) // You can set outputs as needed
-                .visibility(Set.of("OrgA","OrgC")) // Visible to the owner organization
+                .tier(tier)
                 .build();
         // save the ProcessingElement to the repository
         processingElementRepository.save(peB);

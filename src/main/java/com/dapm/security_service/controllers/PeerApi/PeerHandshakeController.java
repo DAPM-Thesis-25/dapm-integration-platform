@@ -1,4 +1,4 @@
-package com.dapm.security_service.controllers.PeerApi2;
+package com.dapm.security_service.controllers.PeerApi;
 import com.dapm.security_service.models.SubscriberOrganization;
 import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.ProcessingElementRepository;

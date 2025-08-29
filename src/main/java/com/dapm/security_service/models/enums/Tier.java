@@ -4,5 +4,6 @@ public enum Tier {
     FREE,
     BASIC,
     PREMIUM,
-    ENTERPRISE
+    ENTERPRISE,
+    PRIVATE
 }

@@ -1,6 +1,6 @@
 package com.dapm.security_service.controllers.Client2Api;
 
-import com.dapm.security_service.controllers.PeerApi2.PeerHandshakeController;
+import com.dapm.security_service.controllers.PeerApi.PeerHandshakeController;
 import com.dapm.security_service.models.PublisherOrganization;
 import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.PublisherOrganizationRepository;

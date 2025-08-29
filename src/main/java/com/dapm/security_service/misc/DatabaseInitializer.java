@@ -3,6 +3,7 @@ package com.dapm.security_service.misc;
 import com.dapm.security_service.models.*;
 import com.dapm.security_service.models.enums.OrgPermAction;
 import com.dapm.security_service.models.enums.ProjectPermAction;
+import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -155,43 +156,14 @@ public class DatabaseInitializer implements CommandLineRunner {
 
 
 //TODO: orgB IS  hardcoded , chnage later to be dynamic
-        if (orgName.equals("OrgA")) {
-            org = organizationRepository.findByName("OrgA")
-                    .orElseGet(() -> organizationRepository.save(
-                            Organization.builder()
-                                    .id(ORG_A_ID)
-                                    .name("OrgA")
-                                    .build()
-                            ));
-//            organizationRepository.findByName("OrgB")
-//                                    .orElseGet(() -> organizationRepository.save(
-//                                            Organization.builder()
-//                                                    .id(ORG_B_ID)
-//                                                    .name("OrgB")
-//                                                    .build()
-//                    ));
-        } else {
-            org = organizationRepository.findByName("OrgB")
-                    .orElseGet(() -> organizationRepository.save(
-                            Organization.builder()
-                                    .id(ORG_B_ID)
-                                    .name("OrgB")
-                                    .build()
-                    ));
-            // 👇 Add this only inside the OrgB block
-            ProcessingElement peB = ProcessingElement.builder()
-                    .id(NODE_B_ID)
-                    .templateId("pe_discovery")
-                    .ownerOrganization(org)
-                    .inputs(Set.of("Event"))
-                    .outputs(Set.of("Model"))
-                    .visibility(Set.of("OrgA"))
-                    .build();
 
-            processingElementRepository.save(peB);
-
-
-        }
+        org = organizationRepository.findByName(orgName)
+                .orElseGet(() -> organizationRepository.save(
+                        Organization.builder()
+                                .id(ORG_A_ID)
+                                .name(orgName)
+                                .build()
+                ));
 
 
         // 4. Define Permissions.
@@ -299,59 +271,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         // Hey there I am new
         Project p=createProjectIfNotExistStatic("dapm",org,PROJECT1_ID);
 
-        // 10. Create a Pipeline (owned by OrgA).
-        Pipeline pipeline = Pipeline.builder()
-                .id(PIPELINE_ID)
-                .name("Cross-Org Pipeline")
-                .ownerOrganization(org)
-                .description("Pipeline with processing elements from OrgA and OrgB")
-                .pipelineRole(pipelineRole)
-                .project(p)
-                .processingElements(new HashSet<>())  // Use processingElements field
-                .tokens(new HashSet<>())
-                .createdBy(CREATED_BY_ID)
-                .createdAt(Instant.parse("2025-03-11T13:45:07.455Z"))
-                .updatedAt(Instant.parse("2025-03-11T13:45:07.455Z"))
-                .build();
 
-
-        // 11. Create Processing Elements.
-// You can use your existing node IDs for processing element IDs if desired,
-// or generate new ones. Here, we're reusing the constants.
-        ProcessingElement pe1 = ProcessingElement.builder()
-                .id(NODE_A1_ID)  // or UUID.randomUUID() if you prefer
-                .templateId("pe_filter")  // This template represents an OrgA template
-                .ownerOrganization(org)
-                .inputs(new HashSet<>())   // Set default inputs as needed
-                .outputs(new HashSet<>())  // Set default outputs as needed
-                .build();
-
-        ProcessingElement pe2 = ProcessingElement.builder()
-                .id(NODE_A2_ID)
-                .templateId("pe_filter")
-                .ownerOrganization(org)
-                .inputs(new HashSet<>())
-                .outputs(new HashSet<>())
-                .build();
-
-        pe1 = processingElementRepository.save(pe1);
-        pe2 = processingElementRepository.save(pe2);
-
-        // 12. Associate nodes with the pipeline (ManyToMany).
-
-        // Set<Node> nodes = new HashSet<>(Arrays.asList(node1, node2, node3));
-        // pipeline.setNodes(nodes);
-        pipeline.getProcessingElements().clear();
-
-        // 13. Set tokens as empty for now.
-        //pipeline.setTokens(new HashSet<>());
-        pipeline.getTokens().clear();
-
-        // 14. Create sample PE Templates for testing assembly stage.
-
-
-        // Save the pipeline.
-        pipeline = pipelineRepository.save(pipeline);
 
         // Hey there I am new
         // create a project permission

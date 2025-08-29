@@ -30,11 +30,11 @@ public class PipelineDesignController {
      * The service aggregates both local and externally visible templates.
 
      */
-    @GetMapping("/available-pe-templates")
-    public ResponseEntity<List<ProcessingElementDto>> getAvailablePeTemplates() {
-        List<ProcessingElementDto> templates = pipelineDesignService.getAvailablePeTemplates(orgId);
-        return ResponseEntity.ok(templates);
-    }
+//    @GetMapping("/available-pe-templates")
+//    public ResponseEntity<List<ProcessingElementDto>> getAvailablePeTemplates() {
+//        List<ProcessingElementDto> templates = pipelineDesignService.getAvailablePeTemplates(orgId);
+//        return ResponseEntity.ok(templates);
+//    }
 
     /**
      * POST endpoint to submit a new pipeline design.

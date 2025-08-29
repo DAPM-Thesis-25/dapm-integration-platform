@@ -1,5 +1,6 @@
 package com.dapm.security_service.models;
 
+import com.dapm.security_service.models.enums.Tier;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,6 +29,9 @@ public class ProcessingElement {
     @JoinColumn(name = "owner_partner_organization_id")
     private PublisherOrganization ownerPartnerOrganization;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tier", nullable = false)
+    private Tier tier;
 
 
     // The identifier of the template used for this processing element.
@@ -48,12 +52,6 @@ public class ProcessingElement {
     @Builder.Default
     private Set<String> outputs = new HashSet<>();
 
-    // Visibility of this template.
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "processing_element_visibility", joinColumns = @JoinColumn(name = "processing_element_id"))
-    @Column(name = "visible_org")
-    @Builder.Default
-    private Set<String> visibility = new HashSet<>();
 
     public void validateOwner() {
         if ((ownerOrganization == null && ownerPartnerOrganization == null) ||
