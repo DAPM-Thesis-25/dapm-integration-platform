@@ -35,4 +35,8 @@ build/
 **/heuristics-miner.jar
 *.jar
 
-secrets
+secrets/
+
+runtime-configs/
+runtime-templates/
+outputs/
