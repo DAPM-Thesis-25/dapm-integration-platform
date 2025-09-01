@@ -2,6 +2,7 @@ package com.dapm.security_service.controllers.Client2Api;
 
 import com.dapm.security_service.controllers.PeerApi.PeerHandshakeController;
 import com.dapm.security_service.models.PublisherOrganization;
+import com.dapm.security_service.models.enums.SubscriptionTier;
 import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.PublisherOrganizationRepository;
 import com.dapm.security_service.security.CustomUserDetails;
@@ -111,7 +112,7 @@ public class HandshakeClientController {
             // d) If we reach here, peer accepted → save the org
             publisherOrganizationRepository.findByName(orgName)
                     .orElseGet(() -> publisherOrganizationRepository.save(
-                            new PublisherOrganization(UUID.randomUUID(), orgName, Tier.FREE)
+                            new PublisherOrganization(UUID.randomUUID(), orgName, SubscriptionTier.FREE)
                     ));
 
             return HandshakeResult.ok(orgName);

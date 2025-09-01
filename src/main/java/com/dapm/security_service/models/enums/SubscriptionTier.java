@@ -1,6 +1,6 @@
 package com.dapm.security_service.models.enums;
 
-public enum Tier {
+public enum SubscriptionTier {
     FREE,
     BASIC,
     PREMIUM,

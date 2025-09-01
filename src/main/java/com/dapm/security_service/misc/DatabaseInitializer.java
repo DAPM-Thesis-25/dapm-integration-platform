@@ -3,6 +3,7 @@ package com.dapm.security_service.misc;
 import com.dapm.security_service.models.*;
 import com.dapm.security_service.models.enums.OrgPermAction;
 import com.dapm.security_service.models.enums.ProjectPermAction;
+import com.dapm.security_service.models.enums.SubscriptionTier;
 import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class DatabaseInitializer implements CommandLineRunner {
     @Autowired private ProjectRolePermissionRepository projectRolePermissionRepository;
     @Autowired private UserRoleAssignmentRepository userRoleAssignmentRepository;
 
-
+    @Autowired private VoucherRepository voucherRepository;
 
 
     @Autowired
@@ -49,8 +50,6 @@ public class DatabaseInitializer implements CommandLineRunner {
     // --- Static UUID Definitions (unique) ---
     // Organizations
     private static final UUID ORG_A_ID = UUID.fromString("3430e05b-3b59-48c2-ae8a-22a9a9232f18");
-    private static final UUID ORG_B_ID = UUID.fromString("99999999-9999-9999-9999-999999999999");
-
 
 
     // Permissions
@@ -78,49 +77,12 @@ public class DatabaseInitializer implements CommandLineRunner {
     private static final UUID ROLE_PIPELINE_ID     = UUID.fromString("f17a2042-f9c8-4a46-83fc-5c83e1cb7aee"); // Given
 
 
-    // Roles for OrgB
-    private static final UUID ROLE_ADMIN_B_ID      = UUID.fromString("bbbbbbbb-1111-1111-1111-bbbbbbbb1111");
-    private static final UUID ROLE_DEPHEAD_B_ID    = UUID.fromString("cccccccc-2222-2222-2222-cccccccc2222");
-    private static final UUID ROLE_RESEARCHER_B_ID = UUID.fromString("dddddddd-3333-3333-3333-dddddddd3333");
-    private static final UUID ROLE_PIPELINE_B_ID   = UUID.fromString("eeeeeeee-4444-4444-4444-eeeeeeee4444");
 
     // Users for OrgA
     private static final UUID USER_ANNA_ID     = UUID.fromString("11111111-1111-1111-1111-111111111112");
     private static final UUID USER_ANTHONI_ID  = UUID.fromString("11111111-1111-1111-1111-111111111113");
     private static final UUID USER_ALICE_ID    = UUID.fromString("11111111-1111-1111-1111-111111111114");
     private static final UUID USER_ASHLEY_ID   = UUID.fromString("11111111-1111-1111-1111-111111111115");
-
-    // Users for OrgB
-    private static final UUID USER_BRIAN_ID    = UUID.fromString("22222222-2222-2222-2222-222222222223");
-    private static final UUID USER_BARNI_ID    = UUID.fromString("22222222-2222-2222-2222-222222222224");
-    private static final UUID USER_BOB_ID      = UUID.fromString("22222222-2222-2222-2222-222222222225");
-    private static final UUID USER_BOBBY_ID    = UUID.fromString("22222222-2222-2222-2222-222222222226");
-
-    // Created by static value
-    private static final UUID CREATED_BY_ID    = UUID.fromString("6ef33aec-e030-4a67-9df2-3d11e8289fb9");
-
-    // Pipeline ID
-    private static final UUID PIPELINE_ID      = UUID.fromString("44444444-4444-4444-4444-444444444444");
-
-    // Node IDs
-    private static final UUID NODE_A1_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
-    private static final UUID NODE_A2_ID = UUID.fromString("66666666-6666-6666-6666-666666666666");
-    private static final UUID NODE_B_ID  = UUID.fromString("77777777-7777-7777-7777-777777777777");
-
-    // Policy for EXECUTE_PIPELINE
-    private static final UUID POLICY_EXEC_PIPELINE_ID = UUID.fromString("ffffffff-ffff-ffff-ffff-fffffffffff1");
-
-    // Resources and Resource Types
-    // Resource Type for OrgA
-    private static final UUID RESOURCETYPE_A_ID = UUID.fromString("11111111-2222-3333-4444-555555555555");
-    // Resource Type for OrgB
-    private static final UUID RESOURCETYPE_B_ID = UUID.fromString("66666666-7777-8888-9999-aaaaaaaaaaaa");
-
-    // Resources for OrgA
-    private static final UUID RESOURCE_A_ID = UUID.fromString("aaaaaaa0-1111-1111-1111-aaaaaaaaaaaa");
-    private static final UUID RESOURCE_B_ID = UUID.fromString("aaaaaaa1-3333-3333-3333-aaaaaaaaaaaa");
-    // Resource for OrgB
-    private static final UUID RESOURCE_C_ID = UUID.fromString("ccccccc0-5555-5555-5555-cccccccccccc");
 
 
 
@@ -132,8 +94,6 @@ public class DatabaseInitializer implements CommandLineRunner {
     // Hey there I am new
     // Create a project uuid
     private static final UUID PROJECT1_ID = UUID.fromString("99999999-0000-0000-0000-999999999999");
-    private static final UUID PROJECT2_ID = UUID.fromString("99999999-0000-0000-0000-199999999999");
-
     // Hey there I am new
     // Create a OrgRole
     private static final UUID ADMIN_ID = UUID.fromString("99999999-0000-0000-0000-299999999999");
@@ -308,6 +268,15 @@ public class DatabaseInitializer implements CommandLineRunner {
 
         UserRoleAssignment userRoleAssignment = createUserRoleAssignmentIfNotExist(user, p, projectRole2);
 
+
+        Voucher voucher1=createVoucherIfNotExistStatic("BASIC-2025-ORG",false, SubscriptionTier.BASIC);
+        Voucher voucher2=createVoucherIfNotExistStatic("PREMIUM-2025-ORG",false, SubscriptionTier.PREMIUM);
+        Voucher voucher3=createVoucherIfNotExistStatic("BASIC2-2025-ORG",false, SubscriptionTier.BASIC);
+        Voucher voucher4=createVoucherIfNotExistStatic("PREMIUM2-2025-ORG",false, SubscriptionTier.PREMIUM);
+
+
+
+
         System.out.println("Database initialization complete.");
     }
 
@@ -324,6 +293,19 @@ public class DatabaseInitializer implements CommandLineRunner {
             permission = permissionRepository.save(permission);
         }
         return permission;
+    }
+    // create a createVoucherIfNotExistStatic method
+    private Voucher createVoucherIfNotExistStatic(String code, boolean redeemed, SubscriptionTier subscriptionTier) {
+        Voucher voucher = voucherRepository.findByCode(code).orElse(null);
+        if (voucher == null) {
+            voucher = Voucher.builder()
+                    .code(code)
+                    .tier(subscriptionTier )
+                    .redeemed(redeemed)
+                    .build();
+            voucher = voucherRepository.save(voucher);
+        }
+        return voucher;
     }
 
     private Role createRoleIfNotExistStatic(String name, Organization organization, Set<Permission> permissions, UUID id) {
