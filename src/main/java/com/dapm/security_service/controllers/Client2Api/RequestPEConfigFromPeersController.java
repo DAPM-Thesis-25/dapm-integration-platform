@@ -92,6 +92,10 @@ public class RequestPEConfigFromPeersController {
                             .ownerPartnerOrganization(org)
                             .templateId(item.templateId)
                             .tier(item.tier)
+                            .instanceNumber(0)
+                            .inputs(item.inputs)
+                            .output(item.output)
+                            .hostURL("http://"+org.getName().toLowerCase()+":8080")
                             .build();
 
             processingElementRepository.save(peB);
@@ -118,5 +122,7 @@ public class RequestPEConfigFromPeersController {
         public boolean found;
         public String schema;
         public Tier tier;
+        public Set<String> inputs;
+        public String output;
     }
 }

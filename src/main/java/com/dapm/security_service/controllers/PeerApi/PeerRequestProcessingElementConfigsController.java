@@ -65,6 +65,8 @@ public class PeerRequestProcessingElementConfigsController {
             entry.put("templateId", pe.getTemplateId());
             entry.put("fileName", expectedFile);
             entry.put("tier", pe.getTier());
+            entry.put("inputs", pe.getInputs());
+            entry.put("output", pe.getOutput());
 
             if (Files.exists(schemaPath) && schemaPath.startsWith(root)) {
                 String schemaContent = Files.readString(schemaPath);

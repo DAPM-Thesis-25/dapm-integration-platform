@@ -38,6 +38,13 @@ public class ProcessingElement {
     @Column(name = "template_id", nullable = false)
     private String templateId;
 
+    @Column(name = "instance_number", nullable = false)
+    private Integer instanceNumber;
+
+    @Column(name = "name", nullable = false, unique = false)
+    private String hostURL;
+
+
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "processing_element_inputs", joinColumns = @JoinColumn(name = "processing_element_id"))
@@ -46,11 +53,8 @@ public class ProcessingElement {
     private Set<String> inputs = new HashSet<>();
 
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "processing_element_outputs", joinColumns = @JoinColumn(name = "processing_element_id"))
-    @Column(name = "output")
-    @Builder.Default
-    private Set<String> outputs = new HashSet<>();
+    @Column(name = "output", nullable = true)
+    private String output;
 
 
     public void validateOwner() {

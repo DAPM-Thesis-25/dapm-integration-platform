@@ -1,0 +1,70 @@
+{
+  "channels": [
+    {
+      "publisher": {
+        "templateID": "EventSource",
+        "configuration": {}
+      },
+      "subscribers": [
+        {
+          "portNumber": 1,
+          "processing element": {
+            "templateID": "LanguageFilter",
+            "configuration": {"language": "en"}
+          }
+        }
+      ]
+    },
+
+    {
+      "publisher": {
+        "templateID": "LanguageFilter",
+        "configuration": {"language": "en"}
+      },
+      "subscribers": [
+        {
+          "portNumber": 1,
+          "processing element": {
+            "templateID": "HeuristicsMiner",
+            "configuration": {}
+          }
+        }
+      ]
+    },
+
+    {
+      "publisher": {
+        "templateID": "HeuristicsMiner",
+        "configuration": {}
+      },
+      "subscribers": [
+        {
+          "portNumber": 1,
+          "processing element": {
+            "templateID": "PetriNetSink",
+            "configuration": {}
+          }
+        }
+      ]
+    }
+  ],
+  "processing elements": [
+    {
+      "templateID": "EventSource",
+      "configuration": {}
+    },
+    {
+      "templateID": "LanguageFilter",
+      "configuration": {"language": "en"}
+    },
+    {
+      "templateID": "HeuristicsMiner",
+      "configuration": {}
+    },
+    {
+      "templateID": "PetriNetSink",
+      "configuration": {}
+    }
+
+  ]
+}
