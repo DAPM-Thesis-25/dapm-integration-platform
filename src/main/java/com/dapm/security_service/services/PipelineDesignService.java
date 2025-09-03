@@ -52,28 +52,28 @@ public class PipelineDesignService {
         this.projectRepository = projectRepository;
     }
 
-    public List<ProcessingElementDto> getAvailablePeTemplates(String org) {
-        List<ProcessingElementDto> localDtos = processingElementRepository
-                .findByOwnerOrganization_NameOrVisibilityContaining(org, org)
-                .stream()
-                .map(ProcessingElementDto::new)
-                .collect(Collectors.toList());
-
-        List<ProcessingElementDto> remoteDtos = visiblePeClient.getVisiblePEsFromOrgB(org);
-        // now it is hardcoded to OrgB, but you can make it dynamic if needed
-        publisherOrganizationRepository.findByName("OrgB")
-                .orElseGet(() -> publisherOrganizationRepository.save(new PublisherOrganization(UUID.randomUUID(),"OrgB", Tier.FREE)));
-
-        Set<UUID> existingIds = localDtos.stream()
-                .map(ProcessingElementDto::getId)
-                .collect(Collectors.toSet());
-
-        remoteDtos.stream()
-                .filter(dto -> dto.getId() != null && !existingIds.contains(dto.getId()))
-                .forEach(localDtos::add);
-
-        return localDtos;
-    }
+//    public List<ProcessingElementDto> getAvailablePeTemplates(String org) {
+//        List<ProcessingElementDto> localDtos = processingElementRepository
+//                .findByOwnerOrganization_NameOrVisibilityContaining(org, org)
+//                .stream()
+//                .map(ProcessingElementDto::new)
+//                .collect(Collectors.toList());
+//
+//        List<ProcessingElementDto> remoteDtos = visiblePeClient.getVisiblePEsFromOrgB(org);
+//        // now it is hardcoded to OrgB, but you can make it dynamic if needed
+//        publisherOrganizationRepository.findByName("OrgB")
+//                .orElseGet(() -> publisherOrganizationRepository.save(new PublisherOrganization(UUID.randomUUID(),"OrgB", Tier.FREE)));
+//
+//        Set<UUID> existingIds = localDtos.stream()
+//                .map(ProcessingElementDto::getId)
+//                .collect(Collectors.toSet());
+//
+//        remoteDtos.stream()
+//                .filter(dto -> dto.getId() != null && !existingIds.contains(dto.getId()))
+//                .forEach(localDtos::add);
+//
+//        return localDtos;
+//    }
 
     public Pipeline savePipelineDesign(PipelineDesignDto dto) {
         Map<String, UUID> idMap = new HashMap<>();
@@ -81,15 +81,15 @@ public class PipelineDesignService {
 
         if (dto.getProcessingElements() != null) {
             for (ProcessingElementDto peDto : dto.getProcessingElements()) {
-                String tempId = peDto.getId() != null ? peDto.getId().toString() : UUID.randomUUID().toString();
+                String tempId = UUID.randomUUID().toString();
                 UUID newId = UUID.randomUUID();
                 idMap.put(tempId, newId);
 
                 ProcessingElement.ProcessingElementBuilder builder = ProcessingElement.builder()
                         .id(newId)
-                        .templateId(peDto.getTemplateId())
-                        .inputs(peDto.getInputs())
-                        .outputs(peDto.getOutputs());
+                        .templateId(peDto.getTemplateId());
+//                        .inputs(peDto.getInputs())
+//                        .outputs(peDto.getOutputs());
 
                 if (peDto.getOwnerOrganization().equals(orgName)) {
                     builder.ownerOrganization(getOrganization(peDto.getOwnerOrganization()));

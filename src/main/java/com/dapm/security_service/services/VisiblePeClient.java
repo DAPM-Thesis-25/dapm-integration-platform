@@ -1,7 +1,7 @@
 package com.dapm.security_service.services;
 
-import com.dapm.security_service.controllers.PeerApi2.PeerHandshakeController.HandshakeRequest;
-import com.dapm.security_service.controllers.PeerApi2.PeerHandshakeController.HandshakeResponse;
+import com.dapm.security_service.controllers.PeerApi.PeerHandshakeController.HandshakeRequest;
+import com.dapm.security_service.controllers.PeerApi.PeerHandshakeController.HandshakeResponse;
 import com.dapm.security_service.models.dtos.ProcessingElementDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

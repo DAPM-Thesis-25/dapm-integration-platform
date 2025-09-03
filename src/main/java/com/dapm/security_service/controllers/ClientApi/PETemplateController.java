@@ -26,16 +26,6 @@ public class PETemplateController {
         return processingElementRepository.findById(id).map(ProcessingElementDto::new).orElse(null);
     }
 
-    @PostMapping
-    public ProcessingElementDto createProcessingElement(@RequestBody ProcessingElement processingElement) {
-        if (processingElement.getId() == null) {
-            processingElement.setId(UUID.randomUUID());
-        }
-
-
-        ProcessingElement savedProcessingElement = processingElementRepository.save(processingElement);
-        return new ProcessingElementDto(savedProcessingElement);
-    }
 
     @PutMapping("/{id}")
     public ProcessingElementDto updateProcessingElement(@PathVariable UUID id, @RequestBody ProcessingElement processingElement) {
@@ -43,8 +33,5 @@ public class PETemplateController {
         return new ProcessingElementDto(processingElementRepository.save(processingElement));
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteProcessingElement(@PathVariable UUID id) {
-        processingElementRepository.deleteById(id);
-    }
+
 }

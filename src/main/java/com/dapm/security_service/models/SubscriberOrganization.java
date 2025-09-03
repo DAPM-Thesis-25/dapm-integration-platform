@@ -1,6 +1,7 @@
 package com.dapm.security_service.models;
 
 import com.dapm.security_service.models.enums.AccessRequestStatus;
+import com.dapm.security_service.models.enums.SubscriptionTier;
 import com.dapm.security_service.models.enums.Tier;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,6 @@ public class SubscriberOrganization {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tier", nullable = false)
-    private Tier tier;
+    private SubscriptionTier tier;
 
 }

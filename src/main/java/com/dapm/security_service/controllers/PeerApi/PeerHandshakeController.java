@@ -1,5 +1,6 @@
-package com.dapm.security_service.controllers.PeerApi2;
+package com.dapm.security_service.controllers.PeerApi;
 import com.dapm.security_service.models.SubscriberOrganization;
+import com.dapm.security_service.models.enums.SubscriptionTier;
 import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
 import com.dapm.security_service.repositories.SubscriberOrganizationRepository;
@@ -68,7 +69,7 @@ public  class PeerHandshakeController {
                 // 2. Save caller as partner if not already
                 subscriberOrganizationRepository.findByName(callerOrg)
                         .orElseGet(() -> subscriberOrganizationRepository.save(
-                                new SubscriberOrganization(UUID.randomUUID(), callerOrg, Tier.FREE)
+                                new SubscriberOrganization(UUID.randomUUID(), callerOrg, SubscriptionTier.FREE)
                         ));
 
                 // 3. Just return OK
