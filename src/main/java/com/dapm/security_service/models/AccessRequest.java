@@ -24,16 +24,6 @@ public class AccessRequest {
     @JoinColumn(name = "requester_id", nullable = false)
     private User requester;
 
-//    // Reference the ResourceType entity.
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "resource_type_id", nullable = false)
-//    private ResourceType resourceType;
-
-    // Reference the ActionType entity.
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "action_type_id", nullable = false)
-//    private ActionType action;
-
     @Column(name = "details", length = 1000)
     private String details;
 
