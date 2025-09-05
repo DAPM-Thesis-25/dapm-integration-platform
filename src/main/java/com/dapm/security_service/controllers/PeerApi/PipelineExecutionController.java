@@ -1,4 +1,4 @@
-package com.dapm.security_service.controller;
+package com.dapm.security_service.controllers.PeerApi;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

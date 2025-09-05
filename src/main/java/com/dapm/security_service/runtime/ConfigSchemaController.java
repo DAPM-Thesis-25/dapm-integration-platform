@@ -127,6 +127,8 @@ public class ConfigSchemaController {
             throw new RuntimeException("simple_pipeline.json not found on classpath", e);
         }
 
+        System.out.println(contents+" I am ii config");
+
         System.out.println(configURI);
         ValidatedPipeline validatedPipeline = new ValidatedPipeline(contents, configURI);
         System.out.println(validatedPipeline+ "I am here");

@@ -22,9 +22,10 @@ public class ProcessingElementDto {
     // The owner organization as a string ("OrgA" or "OrgB")
     private String ownerOrganization;
     // Inputs for the processing element.
-//    private Set<String> inputs;
+    private Set<String> inputs;
 //    // Outputs for the processing element.
-//    private Set<String> outputs;
+    private String output;
+    private String hostURL;
     private Tier tier;
 
     public ProcessingElementDto(ProcessingElement processingElement) {
@@ -40,13 +41,12 @@ public class ProcessingElementDto {
         }
         this.tier = processingElement.getTier();
 
-//        this.inputs = processingElement.getInputs() != null
-//                ? processingElement.getInputs().stream().collect(Collectors.toSet())
-//                : Collections.emptySet();
-//
-//        this.outputs = processingElement.getOutputs() != null
-//                ? processingElement.getOutputs().stream().collect(Collectors.toSet())
-//                : Collections.emptySet();
+        this.inputs = processingElement.getInputs() != null
+                ? processingElement.getInputs().stream().collect(Collectors.toSet())
+                : Collections.emptySet();
+
+        this.output = processingElement.getOutput();
+        this.hostURL = processingElement.getHostURL();
     }
 
 }

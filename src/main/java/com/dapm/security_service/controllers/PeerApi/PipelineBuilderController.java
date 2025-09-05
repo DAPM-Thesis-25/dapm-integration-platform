@@ -1,4 +1,4 @@
-package com.dapm.security_service.controller;
+package com.dapm.security_service.controllers.PeerApi;
 
 import communication.API.request.PEInstanceRequest;
 import communication.API.response.PEInstanceResponse;

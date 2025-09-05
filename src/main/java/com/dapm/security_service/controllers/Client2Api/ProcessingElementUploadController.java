@@ -97,7 +97,10 @@ public class ProcessingElementUploadController {
             )
             MultipartFile file,
             @RequestPart("configSchema") MultipartFile file2,
-            @RequestParam(value = "tier", required = false) Tier tier
+            @RequestParam(value = "tier", required = false) Tier tier,
+            @RequestParam(value = "output", required = false) String output,
+            @RequestParam(value = "inputs", required = false) Set<String> inputs
+
             ) throws Exception {
 
         if (file == null || file.isEmpty()) {
@@ -203,8 +206,10 @@ public class ProcessingElementUploadController {
                 .id(UUID.randomUUID())
                 .ownerOrganization(org)
                 .templateId(templateID)
-                .inputs(Set.of()) // You can set inputs as needed
-                .outputs(Set.of()) // You can set outputs as needed
+                .instanceNumber(0)
+                .hostURL("http://"+orgName.toLowerCase()+":8080")
+                .inputs(inputs) // You can set inputs as needed
+                .output(output) // You can set outputs as needed
                 .tier(tier)
                 .build();
         // save the ProcessingElement to the repository
