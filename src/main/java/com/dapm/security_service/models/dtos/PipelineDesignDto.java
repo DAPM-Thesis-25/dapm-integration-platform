@@ -1,6 +1,4 @@
 package com.dapm.security_service.models.dtos;
-
-import com.dapm.security_service.models.Channel;
 import com.dapm.security_service.models.Pipeline;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,12 +20,13 @@ public class PipelineDesignDto {
     public PipelineDesignDto(Pipeline pipeline) {
         this.name = pipeline.getName();
         this.project = pipeline.getProject().getName();
-        this.processingElements = pipeline.getProcessingElements().stream()
-                .map(ProcessingElementDto::new)
-                .toList();
-        this.channels = pipeline.getChannels().stream()
-                .map(channel -> List.of(channel.getSource().toString(), channel.getTarget().toString()))
-                .toList();
+//        this.processingElements = pipeline.getProcessingElements().stream()
+//                .map(ProcessingElementDto::new)
+//                .toList();
+//        this.channels = pipeline.getChannels().stream()
+//                .map(channel -> List.of(channel.getSource().toString(), channel.getTarget().toString()))
+//                .toList();
+
     }
 
 }

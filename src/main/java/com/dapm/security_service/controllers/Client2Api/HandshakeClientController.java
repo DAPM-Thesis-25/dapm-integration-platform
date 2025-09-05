@@ -100,22 +100,26 @@ public class HandshakeClientController {
         try {
             // a) Create handshake token
             String jwtA = tokenService.generateHandshakeToken(300);
-
+            System.out.println("Generated handshake token: " +jwtA);
             // b) Build request payload
             PeerHandshakeController.HandshakeRequest req = new PeerHandshakeController.HandshakeRequest();
             req.setToken(jwtA);
 
             // c) Call peer handshake endpoint with dynamic org host
             String url = buildPeerUrl(orgName);
-            restTemplate.postForLocation(url, req); // only care about status 200/201
+            ResponseEntity<PeerHandshakeController.HandshakeResponse> response =
+                    restTemplate.postForEntity(url, req, PeerHandshakeController.HandshakeResponse.class);
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                Integer maxHours = response.getBody().getMaxHours();
+                publisherOrganizationRepository.findByName(orgName)
+                        .orElseGet(() -> publisherOrganizationRepository.save(
+                                new PublisherOrganization(UUID.randomUUID(), orgName, SubscriptionTier.FREE, maxHours)
+                        ));
 
-            // d) If we reach here, peer accepted → save the org
-            publisherOrganizationRepository.findByName(orgName)
-                    .orElseGet(() -> publisherOrganizationRepository.save(
-                            new PublisherOrganization(UUID.randomUUID(), orgName, SubscriptionTier.FREE)
-                    ));
-
-            return HandshakeResult.ok(orgName);
+                return HandshakeResult.ok(orgName + " (maxHours=" + maxHours + ")");
+            } else {
+                return HandshakeResult.fail("Peer handshake failed with status: " + response.getStatusCode());
+            }
 
         } catch (RestClientException rce) {
             return HandshakeResult.fail("HTTP error calling peer: " + rce.getMessage());

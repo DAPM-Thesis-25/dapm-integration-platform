@@ -1,4 +1,4 @@
-package com.dapm.security_service.models;
+package com.dapm.security_service.models.dtos;
 
 import lombok.Data;
 

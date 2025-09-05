@@ -1,4 +1,6 @@
 {
+  "pipelineName": "test",
+  "projectName": "dapm",
   "channels": [
     {
       "publisher": {

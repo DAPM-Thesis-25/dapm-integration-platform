@@ -1,6 +1,6 @@
 package com.dapm.security_service.controllers.ClientApi;
 
-import com.dapm.security_service.models.ConfirmationResponse;
+import com.dapm.security_service.models.dtos.ConfirmationResponse;
 import com.dapm.security_service.models.PipelineProcessingElementRequest;
 import com.dapm.security_service.models.dtos.ApproveProcessingElementRequestDto;
 import com.dapm.security_service.models.dtos.ProccessingElementAccessRequestDto;

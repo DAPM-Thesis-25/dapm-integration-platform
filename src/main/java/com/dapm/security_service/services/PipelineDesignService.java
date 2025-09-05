@@ -112,12 +112,12 @@ public class PipelineDesignService {
 
         }
 
-        List<Channel> updatedChannels = dto.getChannels().stream()
-                .map(pair -> new Channel(
-                        idMap.get(pair.get(0)), // convert temp source
-                        idMap.get(pair.get(1))  // convert temp target
-                ))
-                .collect(Collectors.toList());
+//        List<Channel> updatedChannels = dto.getChannels().stream()
+//                .map(pair -> new Channel(
+//                        idMap.get(pair.get(0)), // convert temp source
+//                        idMap.get(pair.get(1))  // convert temp target
+//                ))
+//                .collect(Collectors.toList());
 
 
 
@@ -130,12 +130,11 @@ public class PipelineDesignService {
                 .name(dto.getName())
                 .project(project)
                 .ownerOrganization(getDefaultOwnerOrganization())
-                .pipelineRole(null)
-                .processingElements(elements)
-                .channels(updatedChannels)
+//                .processingElements(elements)
+//                .channels(updatedChannels)
                 .createdBy(getAuthenticatedUserId())
                 .createdAt(Instant.now())
-                .updatedAt(Instant.now())
+//                .updatedAt(Instant.now())
                 .build();
 
         return pipelineRepository.save(pipeline);

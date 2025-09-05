@@ -15,21 +15,5 @@ import java.util.UUID;
 public interface PipelineRepositoryy extends JpaRepository<Pipeline, UUID> {
 
     // Using a defined EntityGraph (ensure you have updated the named entity graph in your Pipeline entity)
-    @EntityGraph(value = "Pipeline.processingElementsAndTokens", type = EntityGraph.EntityGraphType.FETCH)
-    List<Pipeline> findAll();
-
-    // Fetch all pipelines, including processingElements & tokens, in one go
-    @Query("SELECT DISTINCT p FROM Pipeline p " +
-            "LEFT JOIN FETCH p.processingElements " +
-            "LEFT JOIN FETCH p.tokens")
-    List<Pipeline> findAllWithProcessingElementsAndTokens();
-
-    // Fetch a single pipeline by ID, including processingElements & tokens
-    @Query("SELECT DISTINCT p FROM Pipeline p " +
-            "LEFT JOIN FETCH p.processingElements " +
-            "LEFT JOIN FETCH p.tokens " +
-            "WHERE p.id = :id")
-    Optional<Pipeline> findByIdWithProcessingElementsAndTokens(@Param("id") UUID id);
-
     Optional<Pipeline> findByName(String pipelineName);
 }

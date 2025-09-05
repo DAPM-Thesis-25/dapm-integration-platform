@@ -1,10 +1,12 @@
 package com.dapm.security_service.controllers.Client2Api;
 
 import com.dapm.security_service.models.PublisherOrganization;
+import com.dapm.security_service.models.Tiers;
 import com.dapm.security_service.models.dtos2.GetPeerRequest;
 import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
 import com.dapm.security_service.repositories.PublisherOrganizationRepository;
+import com.dapm.security_service.repositories.TiersRepository;
 import com.dapm.security_service.services.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +40,8 @@ public class RequestPEConfigFromPeersController {
     @Autowired
     private PublisherOrganizationRepository publisherOrganizationRepository;
 
+    @Autowired
+    private TiersRepository tiersRepository;
     @Autowired
     private TokenService tokenService;
 
@@ -86,6 +90,9 @@ public class RequestPEConfigFromPeersController {
             PublisherOrganization org = publisherOrganizationRepository.findByName(req.orgName())
                     .orElseThrow(() -> new IllegalArgumentException("Organization not found: " + req.orgName()));
 
+//            Tiers tierEntity=tiersRepository.findByName(item.tier)
+//                    .orElseThrow(() -> new IllegalArgumentException("Tier not found: " + item.tier));
+
             com.dapm.security_service.models.ProcessingElement peB =
                     com.dapm.security_service.models.ProcessingElement.builder()
                             .id(UUID.randomUUID())
@@ -96,6 +103,7 @@ public class RequestPEConfigFromPeersController {
                             .inputs(item.inputs)
                             .output(item.output)
                             .hostURL("http://"+org.getName().toLowerCase()+":8080")
+                            .riskLevel(item.riskLevel)
                             .build();
 
             processingElementRepository.save(peB);
@@ -124,5 +132,6 @@ public class RequestPEConfigFromPeersController {
         public Tier tier;
         public Set<String> inputs;
         public String output;
+        public String riskLevel;
     }
 }

@@ -1,10 +1,13 @@
 package com.dapm.security_service.controllers.PeerApi;
 
 import com.dapm.security_service.models.ProcessingElement;
+import com.dapm.security_service.models.SubscriberOrganization;
+import com.dapm.security_service.models.Tiers;
 import com.dapm.security_service.models.dtos2.GetPeerRequest;
 import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
 import com.dapm.security_service.repositories.SubscriberOrganizationRepository;
+import com.dapm.security_service.repositories.TiersRepository;
 import com.dapm.security_service.services.TokenService;
 import com.dapm.security_service.services.TokenVerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,9 @@ public class PeerRequestProcessingElementConfigsController {
     private ProcessingElementRepository peRepository;
     @Autowired
     private SubscriberOrganizationRepository partnerOrganizationRepository;
+
+    @Autowired
+    private TiersRepository tiersRepository;
     @Value("${dapm.defaultOrgName}")
     private String orgName;
 
@@ -41,8 +47,10 @@ public class PeerRequestProcessingElementConfigsController {
             return ResponseEntity.badRequest().body("Invalid or missing token");
         }
         System.out.println("Caller organization: " + callerOrg);
-        partnerOrganizationRepository.findByName(callerOrg)
+        SubscriberOrganization s=partnerOrganizationRepository.findByName(callerOrg)
                 .orElseThrow(() -> new IllegalArgumentException("Partner Organization not found or handshake not completed."));
+
+
 
         // 2) Visible PEs
         List<ProcessingElement> visiblePEs = peRepository.findByTierNot(Tier.PRIVATE);
@@ -67,6 +75,7 @@ public class PeerRequestProcessingElementConfigsController {
             entry.put("tier", pe.getTier());
             entry.put("inputs", pe.getInputs());
             entry.put("output", pe.getOutput());
+            entry.put("riskLevel", pe.getRiskLevel());
 
             if (Files.exists(schemaPath) && schemaPath.startsWith(root)) {
                 String schemaContent = Files.readString(schemaPath);

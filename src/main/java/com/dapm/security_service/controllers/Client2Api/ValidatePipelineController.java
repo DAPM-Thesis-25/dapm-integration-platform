@@ -1,5 +1,6 @@
 package com.dapm.security_service.controllers.Client2Api;
 
+import candidate_validation.ProcessingElementReference;
 import candidate_validation.ValidatedPipeline;
 import com.dapm.security_service.models.ProcessingElement;
 import com.dapm.security_service.models.dtos2.designpipeline.DesignPipelineDto;
@@ -7,44 +8,82 @@ import com.dapm.security_service.models.dtos2.designpipeline.DesignProcessingEle
 import com.dapm.security_service.models.dtos2.validatepipeline.ValidateChannelDto;
 import com.dapm.security_service.models.dtos2.validatepipeline.ValidatePipelineDto;
 import com.dapm.security_service.models.dtos2.validatepipeline.ValidateProcessingElementDto;
+import com.dapm.security_service.models.models2.ValidatedPipelineConfig;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
+import com.dapm.security_service.repositories.ValidatePipelineRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 
 @RestController
-@RequestMapping("/api/designPipeline")
+@RequestMapping("/api/validate-pipeline")
 public class ValidatePipelineController {
 
     @Autowired private ProcessingElementRepository processingElementRepository;
     @Value("${runtime.configs.root:/runtime-configs}")
     private String rootDir;
 
-    @PostMapping("/design")
-    public ResponseEntity<ValidatePipelineDto> createProject(
+    @Value("${dapm.defaultOrgName}")
+    private String orgName;
+
+    @Autowired private ValidatePipelineRepository validatePipelineRepository;
+
+    @PostMapping("/design-pipeline")
+    public ResponseEntity<?> validatePipeline(
             @RequestBody DesignPipelineDto designPipelineDto
     ) throws JsonProcessingException {
-        System.out.println("Received pipeline design: " + designPipelineDto);
+
+        if (validatePipelineRepository.pipelineExists(designPipelineDto.getPipelineName())) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Pipeline with this name already exists");
+
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(response);
+        }
+
         ValidatePipelineDto validatePipelineDto = convertToValidatePipelineDto(designPipelineDto);
         String contents = convertToString(validatePipelineDto);
 
-        System.out.println(contents+" I am ii validate");
-
         String cfgRoot = System.getenv().getOrDefault("runtime.configs.root", "/runtime-configs");
         java.net.URI configURI = java.nio.file.Paths.get(cfgRoot).toUri();
-        String pipelineID = "orgC_pipeline";
 
         ValidatedPipeline validatedPipeline = new ValidatedPipeline(contents, configURI);
-        System.out.println(validatedPipeline+ "I am here");
+        ValidatedPipelineConfig validatedPipelineConfig = createValidatedPipelineConfig(validatedPipeline);
+        validatedPipelineConfig.setPipelineName(designPipelineDto.getPipelineName());
+        validatedPipelineConfig.setProjectName(designPipelineDto.getProjectName());
+        validatePipelineRepository.storePipeline(designPipelineDto.getPipelineName(), validatedPipelineConfig);
+
         return ResponseEntity.ok(validatePipelineDto);
+    }
+
+    // get pipeline by name
+    @GetMapping("/{pipelineName}")
+    public ResponseEntity<?> getPipelineByName(
+            @PathVariable String pipelineName
+    ) {
+        if (!validatePipelineRepository.pipelineExists(pipelineName)) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Pipeline with this name does not exist");
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(response);
+        }
+
+        ValidatedPipelineConfig validatedPipeline = validatePipelineRepository.getPipeline(pipelineName);
+        return ResponseEntity.ok(validatedPipeline);
     }
 
     private ValidatePipelineDto convertToValidatePipelineDto(DesignPipelineDto designPipelineDto) {
@@ -113,5 +152,22 @@ public class ValidatePipelineController {
         return mapper.writeValueAsString(validatePipelineDto);
     }
 
+    // create a ValidatedPipelineConfig from a ValidatePipeline
+    private ValidatedPipelineConfig createValidatedPipelineConfig(ValidatedPipeline p){
+        ValidatedPipelineConfig config = new ValidatedPipelineConfig();
+        config.setValidatedPipeline(p);
+        List<String> externalPEs = new ArrayList<>();
+
+        for (ProcessingElementReference element : p.getElements()) {
+            if(!element.getOrganizationID().equals(orgName)){
+                String externalId = element.getTemplateID();
+                externalPEs.add(externalId);
+                config.getExternalPEsTokens().put(externalId, "");
+            }
+        }
+        config.setExternalPEs(externalPEs);
+
+        return config;
+    }
 
 }

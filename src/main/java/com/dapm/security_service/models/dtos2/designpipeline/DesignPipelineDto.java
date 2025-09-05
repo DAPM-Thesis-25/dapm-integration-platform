@@ -7,6 +7,9 @@ import java.util.List;
 
 @Data
 public class DesignPipelineDto {
+    private String pipelineName;
+    private String projectName;
+
     @JsonProperty("processing elements")
     private List<DesignProcessingElementDto> processingElements;
 

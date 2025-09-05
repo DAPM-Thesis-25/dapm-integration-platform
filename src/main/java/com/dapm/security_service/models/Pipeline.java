@@ -36,30 +36,30 @@ public class Pipeline {
 
 
     // Pipeline execution role (can be linked to the user later)
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "pipeline_role_id", nullable = true)
-    private Role pipelineRole;
+//    @OneToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "pipeline_role_id", nullable = true)
+//    private Role pipelineRole;
 
     // Instead of nodes, we reference processing elements
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "pipeline_processing_element_mapping",
-            joinColumns = @JoinColumn(name = "pipeline_id"),
-            inverseJoinColumns = @JoinColumn(name = "processing_element_id")
-    )
-    @Builder.Default
-    private Set<ProcessingElement> processingElements = new HashSet<>();
+//    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//    @JoinTable(
+//            name = "pipeline_processing_element_mapping",
+//            joinColumns = @JoinColumn(name = "pipeline_id"),
+//            inverseJoinColumns = @JoinColumn(name = "processing_element_id")
+//    )
+//    @Builder.Default
+//    private Set<ProcessingElement> processingElements = new HashSet<>();
 
 
 
-    @ElementCollection
-    @CollectionTable(name = "pipeline_channels", joinColumns = @JoinColumn(name = "pipeline_id"))
-    private List<Channel> channels;
+//    @ElementCollection
+//    @CollectionTable(name = "pipeline_channels", joinColumns = @JoinColumn(name = "pipeline_id"))
+//    private List<Channel> channels;
 
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @Builder.Default
-    private Set<Token> tokens = new HashSet<>();
+//    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+//    @Builder.Default
+//    private Set<Token> tokens = new HashSet<>();
 
     @Column(name = "created_by", nullable = false)
     private UUID createdBy;
@@ -67,6 +67,6 @@ public class Pipeline {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+//    @Column(name = "updated_at", nullable = false)
+//    private Instant updatedAt;
 }

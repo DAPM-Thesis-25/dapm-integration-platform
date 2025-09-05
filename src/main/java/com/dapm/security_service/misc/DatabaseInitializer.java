@@ -33,6 +33,7 @@ public class DatabaseInitializer implements CommandLineRunner {
     @Autowired private ProjectRolePermissionRepository projectRolePermissionRepository;
     @Autowired private UserRoleAssignmentRepository userRoleAssignmentRepository;
 
+    @Autowired private TiersRepository tierRepository;
     @Autowired private VoucherRepository voucherRepository;
 
 
@@ -275,6 +276,9 @@ public class DatabaseInitializer implements CommandLineRunner {
         Voucher voucher4=createVoucherIfNotExistStatic("PREMIUM2-2025-ORG",false, SubscriptionTier.PREMIUM);
 
 
+        Tiers tier1=createTierIfNotExistStatic(Tier.FREE,10);
+        Tiers tier2=createTierIfNotExistStatic(Tier.BASIC,100);
+        Tiers tier3=createTierIfNotExistStatic(Tier.PREMIUM,1000);
 
 
         System.out.println("Database initialization complete.");
@@ -431,6 +435,20 @@ public class DatabaseInitializer implements CommandLineRunner {
                     return userRoleAssignmentRepository.save(newAssignment);
                 });
     }
+
+    // create a createTierIfNotExistStatic method
+    private Tiers createTierIfNotExistStatic(Tier name, Integer maxHours) {
+        Tiers tier = tierRepository.findByName(name).orElse(null);
+        if (tier == null) {
+            tier = Tiers.builder()
+                    .name(name)
+                    .maxHours(maxHours)
+                    .build();
+            tier = tierRepository.save(tier);
+        }
+        return tier;
+    }
+
 
 
 

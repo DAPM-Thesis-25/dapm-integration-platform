@@ -1,6 +1,6 @@
 package com.dapm.security_service.services;
 
-import com.dapm.security_service.models.ConfirmationResponse;
+import com.dapm.security_service.models.dtos.ConfirmationResponse;
 import com.dapm.security_service.models.dtos.peer.RequestResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;

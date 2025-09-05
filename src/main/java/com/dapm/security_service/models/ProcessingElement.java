@@ -33,17 +33,23 @@ public class ProcessingElement {
     @Column(name = "tier", nullable = false)
     private Tier tier;
 
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "tier", nullable = false)
+//    private Tiers tierInfo;
+
 
     // The identifier of the template used for this processing element.
     @Column(name = "template_id", nullable = false)
     private String templateId;
+
+    @Column(name = "risk_level", nullable = false)
+    private String riskLevel;
 
     @Column(name = "instance_number", nullable = false)
     private Integer instanceNumber;
 
     @Column(name = "name", nullable = false, unique = false)
     private String hostURL;
-
 
 
     @ElementCollection(fetch = FetchType.EAGER)

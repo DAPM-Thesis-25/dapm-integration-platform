@@ -27,7 +27,7 @@ public class ProcessingElementDto {
     private String output;
     private String hostURL;
     private Tier tier;
-
+    private String riskLevel;
     public ProcessingElementDto(ProcessingElement processingElement) {
 //        this.id = processingElement.getId();
         this.templateId = processingElement.getTemplateId();
@@ -47,6 +47,7 @@ public class ProcessingElementDto {
 
         this.output = processingElement.getOutput();
         this.hostURL = processingElement.getHostURL();
+        this.riskLevel = processingElement.getRiskLevel();
     }
 
 }

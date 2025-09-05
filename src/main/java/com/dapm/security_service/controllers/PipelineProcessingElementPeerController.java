@@ -1,10 +1,9 @@
 
 package com.dapm.security_service.controllers;
 
-import com.dapm.security_service.models.ConfirmationResponse;
+import com.dapm.security_service.models.dtos.ConfirmationResponse;
 import com.dapm.security_service.models.PipelineProcessingElementRequest;
 import com.dapm.security_service.models.ProcessingElement;
-import com.dapm.security_service.models.RequesterInfo;
 import com.dapm.security_service.models.dtos.peer.*;
 import com.dapm.security_service.models.enums.AccessRequestStatus;
 import com.dapm.security_service.repositories.OrganizationRepository;
