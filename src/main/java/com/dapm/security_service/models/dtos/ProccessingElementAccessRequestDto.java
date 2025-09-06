@@ -24,8 +24,8 @@ public class ProccessingElementAccessRequestDto {
 
     public ProccessingElementAccessRequestDto(PipelineProcessingElementRequest request) {
         this.requestId = request.getId();
-        this.processingElement = request.getPipelineNode().getTemplateId();
-        this.pipelineName = request.getPipelineId().toString();
+//        this.processingElement = request.getProcessingElement().getTemplateId();
+        this.pipelineName = request.getPipelineName();
         this.requesterUsername = request.getRequesterInfo().getUsername();
         this.webhookUrl = request.getWebhookUrl();
         this.status = request.getStatus();

@@ -28,53 +28,53 @@ public class PipelineProcessingElementPeerController {
     /**
      * OrgA calls this endpoint to create a request in OrgB's DB.
      */
-    @PostMapping
-    public RequestResponse createRequest(@RequestBody PipelineProcessingElementRequestOutboundDto requestDto) {
-        // Generate an ID if not provided
-        if (requestDto.getId() == null) {
-            requestDto.setId(UUID.randomUUID());
-        }
-        //verify verifyExternalUser using the token
-        Boolean verified= tokenVerificationService.verifyExternalUser(
-                requestDto.getRequesterInfo().getToken(),
-                requestDto.getRequesterInfo().getOrganization()
-        );
-        System.out.println(
-                "verification"+ verified
-        );
-        if (!verified) {
-            throw new RuntimeException("External user verification failed for organization: " + requestDto.getRequesterInfo().getOrganization());
-        }
-
-
-        ProcessingElement processingElement= processingElementRepository.findByTemplateId(requestDto.getProcessingElementName())
-                .orElseThrow(() -> new RuntimeException("Processing Element not found with Name: " + requestDto.getProcessingElementName()));
-        processingElement.setOwnerOrganization(
-                organizationRepository.findByName("OrgB")
-                        .orElseThrow(() -> new RuntimeException("Organization not found with ID: " + requestDto.getRequesterInfo().getOrganization()))
-        );
-
-        var request = PipelineProcessingElementRequest.builder()
-                .id(requestDto.getId())
-                .pipelineId(requestDto.getPipelineId())
-                .pipelineNode(processingElement)
-                .requesterInfo(requestDto.getRequesterInfo())
-                .requestedExecutionCount(0)
-                .requestedExecutionCount(0)
-                .webhookUrl(requestDto.getWebhookUrl())
-                .status(AccessRequestStatus.PENDING)
-                .build();
-
-        var savedRequest = requestRepository.save(request);
-
-        var response = new RequestResponse();
-        response.setRequestId(request.getId());
-        response.setRequestStatus(AccessRequestStatus.PENDING);
-        response.setToken("");
-
-        return response;
-
-    }
+//    @PostMapping
+//    public RequestResponse createRequest(@RequestBody PipelineProcessingElementRequestOutboundDto requestDto) {
+//        // Generate an ID if not provided
+//        if (requestDto.getId() == null) {
+//            requestDto.setId(UUID.randomUUID());
+//        }
+//        //verify verifyExternalUser using the token
+//        Boolean verified= tokenVerificationService.verifyExternalUser(
+//                requestDto.getRequesterInfo().getToken(),
+//                requestDto.getRequesterInfo().getOrganization()
+//        );
+//        System.out.println(
+//                "verification"+ verified
+//        );
+//        if (!verified) {
+//            throw new RuntimeException("External user verification failed for organization: " + requestDto.getRequesterInfo().getOrganization());
+//        }
+//
+//
+//        ProcessingElement processingElement= processingElementRepository.findByTemplateId(requestDto.getProcessingElementName())
+//                .orElseThrow(() -> new RuntimeException("Processing Element not found with Name: " + requestDto.getProcessingElementName()));
+//        processingElement.setOwnerOrganization(
+//                organizationRepository.findByName("OrgB")
+//                        .orElseThrow(() -> new RuntimeException("Organization not found with ID: " + requestDto.getRequesterInfo().getOrganization()))
+//        );
+//
+//        var request = PipelineProcessingElementRequest.builder()
+//                .id(requestDto.getId())
+////                .pipelineName(requestDto.getPiplineName())
+//                .processingElement(processingElement)
+//                .requesterInfo(requestDto.getRequesterInfo())
+////                .requestedExecutionCount(0)
+////                .requestedExecutionCount(0)
+//                .webhookUrl(requestDto.getWebhookUrl())
+//                .status(AccessRequestStatus.PENDING)
+//                .build();
+//
+//        var savedRequest = requestRepository.save(request);
+//
+//        var response = new RequestResponse();
+//        response.setRequestId(request.getId());
+//        response.setRequestStatus(AccessRequestStatus.PENDING);
+//        response.setToken("");
+//
+//        return response;
+//
+//    }
 
     /**
      * OrgA calls this endpoint to retrieve the entire request record (including the token if approved).

@@ -58,7 +58,7 @@ public class PEResponseController {
 
         // convert hr - min - sec - ms
         request.setAllowedDurationHours(((approveNodeRequestDto.getAllowedDurationHours() * 60) * 60) * 1000);
-        request.setAllowedNoExecutions(approveNodeRequestDto.getAllowedNoExecutions());
+//        request.setAllowedNoExecutions(approveNodeRequestDto.getAllowedNoExecutions());
 
         //request.setApprovalToken(tokenService.generateTokenForNodeRequest(request));
         request.setStatus(AccessRequestStatus.APPROVED);
@@ -108,7 +108,7 @@ public class PEResponseController {
 
         // convert hr - min - sec - ms
         request.setAllowedDurationHours(((approveNodeRequestDto.getAllowedDurationHours() * 60) * 60) * 1000);
-        request.setAllowedNoExecutions(approveNodeRequestDto.getAllowedNoExecutions());
+//        request.setAllowedNoExecutions(approveNodeRequestDto.getAllowedNoExecutions());
 
         //request.setApprovalToken(tokenService.generateTokenForNodeRequest(request));
         request.setStatus(AccessRequestStatus.REJECTED);

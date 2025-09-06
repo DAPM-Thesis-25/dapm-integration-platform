@@ -2,32 +2,30 @@ package com.dapm.security_service.controllers.Client2Api;
 
 import candidate_validation.ProcessingElementReference;
 import candidate_validation.ValidatedPipeline;
-import com.dapm.security_service.models.ProcessingElement;
+import com.dapm.security_service.models.*;
 import com.dapm.security_service.models.dtos2.designpipeline.DesignPipelineDto;
 import com.dapm.security_service.models.dtos2.designpipeline.DesignProcessingElementDto;
 import com.dapm.security_service.models.dtos2.validatepipeline.ValidateChannelDto;
 import com.dapm.security_service.models.dtos2.validatepipeline.ValidatePipelineDto;
 import com.dapm.security_service.models.dtos2.validatepipeline.ValidateProcessingElementDto;
+import com.dapm.security_service.models.enums.PipelinePhase;
 import com.dapm.security_service.models.models2.ValidatedPipelineConfig;
-import com.dapm.security_service.repositories.ProcessingElementRepository;
-import com.dapm.security_service.repositories.ValidatePipelineRepository;
+import com.dapm.security_service.repositories.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 @RestController
-@RequestMapping("/api/validate-pipeline")
+@RequestMapping("/api/pipeline/validation")
 public class ValidatePipelineController {
 
     @Autowired private ProcessingElementRepository processingElementRepository;
@@ -39,6 +37,14 @@ public class ValidatePipelineController {
 
     @Autowired private ValidatePipelineRepository validatePipelineRepository;
 
+    @Autowired private PipelineRepositoryy pipelineRepositoryy;
+    @Autowired private ProcessingElementRepository processingElementRepo;
+    @Autowired private OrganizationRepository organizationRepository;
+
+    @Autowired private PipelinePeInstanceRepo instanceRepo;
+    @Autowired private ProjectRepository projectRepository;
+
+    @PreAuthorize(" hasAuthority('CREATE_PIPELINE:' + #designPipelineDto.getProjectName())")
     @PostMapping("/design-pipeline")
     public ResponseEntity<?> validatePipeline(
             @RequestBody DesignPipelineDto designPipelineDto
@@ -64,6 +70,46 @@ public class ValidatePipelineController {
         validatedPipelineConfig.setPipelineName(designPipelineDto.getPipelineName());
         validatedPipelineConfig.setProjectName(designPipelineDto.getProjectName());
         validatePipelineRepository.storePipeline(designPipelineDto.getPipelineName(), validatedPipelineConfig);
+
+        Organization org = organizationRepository.findByName(orgName)
+                .orElseThrow(() -> new RuntimeException("Organization not found: " + orgName));
+        Pipeline pipeline = new Pipeline();
+        pipeline.setOwnerOrganization(org);
+        pipeline.setName(designPipelineDto.getPipelineName());
+        pipeline.setPipelinePhase(PipelinePhase.VALIDATED);
+
+        Project project = projectRepository.findByName(designPipelineDto.getProjectName())
+                .orElseThrow(() -> new RuntimeException("Project not found: " + designPipelineDto.getProjectName()));
+
+        pipeline.setProject(project);
+        pipeline.setId(UUID.randomUUID());
+
+
+        Set<ProcessingElement> processingElements = new HashSet<>();
+        for (DesignProcessingElementDto pe : designPipelineDto.getProcessingElements()) {
+            ProcessingElement pee = processingElementRepository.findByTemplateId(pe.getTemplateID())
+                    .orElseThrow(() -> new RuntimeException("Processing element not found with template Id: " + pe.getTemplateID()));
+
+            processingElements.add(pee);
+        }
+        pipeline.setProcessingElements(processingElements);
+
+        pipelineRepositoryy.save(pipeline);
+        updatePeInstanceNumbers(validatedPipeline);
+
+        processingElements.stream()
+                .filter(pe -> pe.getOwnerPartnerOrganization() != null)
+                .forEach(pe -> {
+                    PipelineProcessingElementInstance instance = PipelineProcessingElementInstance.builder()
+//                    .id(UUID.randomUUID())
+                            .pipeline(pipeline)
+                            .processingElement(pe)
+                            .instanceNumber(pe.getInstanceNumber()) // or use what you set in ValidateProcessingElementDto
+                            .build();
+
+
+                    instanceRepo.save(instance);
+                });
 
         return ResponseEntity.ok(validatePipelineDto);
     }
@@ -168,6 +214,18 @@ public class ValidatePipelineController {
         config.setExternalPEs(externalPEs);
 
         return config;
+    }
+
+    private void updatePeInstanceNumbers(ValidatedPipeline p){
+        for (ProcessingElementReference element : p.getElements()) {
+            if(!element.getOrganizationID().equals(orgName)){
+                String externalId = element.getTemplateID();
+                ProcessingElement pe = processingElementRepository.findByTemplateId(element.getTemplateID())
+                        .orElseThrow(() -> new RuntimeException("Processing element not found with template Id: " + element.getTemplateID()));
+                pe.setInstanceNumber(pe.getInstanceNumber()+1);
+                processingElementRepository.save(pe);
+            }
+        }
     }
 
 }

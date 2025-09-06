@@ -54,10 +54,10 @@ public class TokenService {
         Instant now = Instant.now();
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("pipelineId", request.getPipelineId().toString());
-        claims.put("pipelineNodeId", request.getPipelineNode().getId().toString());
+        claims.put("pipelineId", request.getPipelineName());
+//        claims.put("pipelineNodeId", request.getProcessingElement().getId().toString());
         claims.put("requesterIdUsername", request.getRequesterInfo().getRequesterId());
-        claims.put("allowedExecutions", request.getRequestedExecutionCount());
+//        claims.put("allowedExecutions", request.getRequestedExecutionCount());
         claims.put("allowedDurationHours", request.getRequestedDurationHours());
 
         return Jwts.builder()
