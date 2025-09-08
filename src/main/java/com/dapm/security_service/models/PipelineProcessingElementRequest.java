@@ -30,7 +30,6 @@ public class PipelineProcessingElementRequest {
     @Column(name = "pipeline_id", nullable = false)
     private String pipelineName;
 
-    // Instead of ManyToOne User, we store a snapshot:
     @Embedded
     private RequesterInfo requesterInfo;
 

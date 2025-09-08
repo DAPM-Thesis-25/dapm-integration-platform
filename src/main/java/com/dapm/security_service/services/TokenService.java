@@ -2,6 +2,7 @@ package com.dapm.security_service.services;
 
 import com.dapm.security_service.models.PipelineProcessingElementRequest;
 import com.dapm.security_service.models.User;
+import com.dapm.security_service.models.dtos2.PipelineProcessingElementRequestOutboundDto;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,5 +113,33 @@ public class TokenService {
         System.out.println("[HandshakeToken] Token=" + token);
 
         return token;
+    }
+
+    public String generateApprovalToken(PipelineProcessingElementRequestOutboundDto request,
+                                        int allowedDurationHours) {
+        Instant now = Instant.now();
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("pipelineId", request.getPipelineName());
+        claims.put("peTemplateId", request.getProcessingElementName());
+        claims.put("requestId", request.getId().toString());
+        claims.put("requesterOrg", request.getRequesterInfo().getOrganization());
+        claims.put("allowedDurationHours", allowedDurationHours);
+        claims.put("instanceNumber", request.getInstanceNumber());
+
+        // absolute expiry: now + allowedDurationHours
+        Instant expiry = now.plusSeconds(allowedDurationHours * 3600L);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject("approval-token")           // subject meaning: capability token
+                .setIssuer(orgId)                       // OrgB
+                .setAudience(request.getRequesterInfo().getOrganization()) // OrgA
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(expiry))
+                .setId(UUID.randomUUID().toString())    // jti
+                .signWith(signingKeyPair.getPrivate(), SignatureAlgorithm.RS256)
+                .setHeaderParam("kid", kidValue)
+                .compact();
     }
 }

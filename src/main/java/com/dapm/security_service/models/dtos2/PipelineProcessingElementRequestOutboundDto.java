@@ -1,4 +1,4 @@
-package com.dapm.security_service.models.dtos.peer;
+package com.dapm.security_service.models.dtos2;
 
 import com.dapm.security_service.models.RequesterInfo;
 import com.dapm.security_service.models.enums.AccessRequestStatus;
@@ -15,13 +15,8 @@ public class PipelineProcessingElementRequestOutboundDto {
     private UUID id;
     private String processingElementName;
     private RequesterInfo requesterInfo;
-    private UUID pipelineId;
-
-    private int requestedExecutionCount;
+    private String pipelineName;
     private int requestedDurationHours;
-    private AccessRequestStatus status;
-
-    private String approvalToken;
-    private Instant decisionTime;
     private String webhookUrl;
+    private int instanceNumber;
 }

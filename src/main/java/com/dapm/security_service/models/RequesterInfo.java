@@ -1,7 +1,6 @@
 package com.dapm.security_service.models;
 
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Lob;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +13,10 @@ public class RequesterInfo {
     private UUID requesterId;
     private String username;
     private String organization;
-    @Lob
+//    @Lob
+//    @Basic(fetch = FetchType.EAGER)
+//    private String token;
+    @Column(length = 4096)
     private String token;
+
 }
