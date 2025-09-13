@@ -1,19 +1,22 @@
 package com.dapm.security_service.services;
 
-import com.dapm.security_service.models.ConfirmationResponse;
+import com.dapm.security_service.models.dtos.ConfirmationResponse;
 import com.dapm.security_service.models.dtos.peer.RequestResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class OrgARequestService {
+public class OrgResponseService {
     private final RestTemplate restTemplate = new RestTemplate();
 
-    private final String ORG_A_BASE_URL = "http://orga:8080/api/peer/pipeline-node-requests/approve";
 
-    public ConfirmationResponse sendResponseToOrgA(RequestResponse response){
+    private String GET_ORG_BASE_URL(String orgName) {
+        return "http://"+orgName.toLowerCase()+":8080/api/peer/request-access/approve";
+    }
+
+    public ConfirmationResponse sendResponseToOrg(RequestResponse response, String orgName) {
         return restTemplate.postForObject(
-                ORG_A_BASE_URL,
+                GET_ORG_BASE_URL(orgName),
                 response,
                 ConfirmationResponse.class
         );

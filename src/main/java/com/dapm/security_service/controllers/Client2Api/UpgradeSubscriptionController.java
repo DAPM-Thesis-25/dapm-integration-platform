@@ -67,6 +67,7 @@ public class UpgradeSubscriptionController {
                 PublisherOrganization publisherOrganization = publisherRepository.findByName(dto.getOrgName())
                         .orElseThrow(() -> new IllegalArgumentException("Partner Organization not found or handshake not completed."));
                 publisherOrganization.setTier(response.getBody().tier());
+                publisherOrganization.setMaxHours(response.getBody().maxHours());
                 publisherRepository.save(publisherOrganization);
             }
 
@@ -84,12 +85,12 @@ public class UpgradeSubscriptionController {
                 // Fallback: pull "message" if available, else a generic message
                 String cleanMessage = extractMessageField(body);
                 return ResponseEntity.status(ex.getStatusCode())
-                        .body(new PeerUpgradeResponse(false, cleanMessage, null));
+                        .body(new PeerUpgradeResponse(false, cleanMessage, null, null));
             }
         } catch (Exception e) {
             // Truly unexpected error on our side
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new PeerUpgradeResponse(false, "Unexpected error while upgrading subscription", null));
+                    .body(new PeerUpgradeResponse(false, "Unexpected error while upgrading subscription", null, null) );
         }
     }
 
@@ -105,5 +106,5 @@ public class UpgradeSubscriptionController {
     }
 
     // Internal DTO to match Peer API response
-    static record PeerUpgradeResponse(boolean success, String message, SubscriptionTier tier) {}
+    static record PeerUpgradeResponse(boolean success, String message, SubscriptionTier tier, Integer maxHours) {}
 }

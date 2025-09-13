@@ -28,13 +28,6 @@ public class Project {
     @JoinColumn(name = "org_id", nullable = false)
     private Organization organization;
 
-//    @ManyToMany(fetch = FetchType.EAGER)
-//    @JoinTable(
-//            name = "partners_organizations",
-//            joinColumns = @JoinColumn(name = "project_id"),
-//            inverseJoinColumns = @JoinColumn(name = "organization_id")
-//    )
-//    private Set<Organization> organizations;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

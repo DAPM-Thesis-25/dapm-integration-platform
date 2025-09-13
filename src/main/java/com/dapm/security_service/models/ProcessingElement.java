@@ -35,15 +35,17 @@ public class ProcessingElement {
 
 
     // The identifier of the template used for this processing element.
-    @Column(name = "template_id", nullable = false)
+    @Column(name = "template_id", nullable = false, unique = true)
     private String templateId;
+
+    @Column(name = "risk_level", nullable = false)
+    private String riskLevel;
 
     @Column(name = "instance_number", nullable = false)
     private Integer instanceNumber;
 
     @Column(name = "name", nullable = false, unique = false)
     private String hostURL;
-
 
 
     @ElementCollection(fetch = FetchType.EAGER)

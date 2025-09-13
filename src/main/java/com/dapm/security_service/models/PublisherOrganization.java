@@ -27,4 +27,7 @@ public class PublisherOrganization {
     @Column(name = "tier", nullable = false)
     private SubscriptionTier tier;
 
+    @Column(name = "maxHours", nullable = false, unique = false)
+    private Integer maxHours;
+
 }

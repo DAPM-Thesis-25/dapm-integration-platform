@@ -1,9 +1,11 @@
 package com.dapm.security_service.controllers.Client2Api;
 
 import com.dapm.security_service.models.Organization;
+import com.dapm.security_service.models.Tiers;
 import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.OrganizationRepository;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
+import com.dapm.security_service.repositories.TiersRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -56,6 +58,9 @@ public class ProcessingElementUploadController {
     @Autowired
     private OrganizationRepository organizationRepository;
 
+    @Autowired
+    private TiersRepository tiersRepository;
+
     private final TemplateRepository repo;
 
     public ProcessingElementUploadController(TemplateRepository repo) {
@@ -97,7 +102,8 @@ public class ProcessingElementUploadController {
             )
             MultipartFile file,
             @RequestPart("configSchema") MultipartFile file2,
-            @RequestParam(value = "tier", required = false) Tier tier,
+            @RequestParam(value = "tier", required = true) Tier tier,
+            @RequestParam(value = "riskLevel", required = true) String riskLevel,
             @RequestParam(value = "output", required = false) String output,
             @RequestParam(value = "inputs", required = false) Set<String> inputs
 
@@ -105,6 +111,9 @@ public class ProcessingElementUploadController {
 
         if (file == null || file.isEmpty()) {
             return ResponseEntity.badRequest().body("No file uploaded.");
+        }
+        if (tier == null) {
+            return ResponseEntity.badRequest().body("Tier is required.");
         }
 
         // upload configuration file
@@ -201,6 +210,9 @@ public class ProcessingElementUploadController {
         if(org == null) {
             return ResponseEntity.badRequest().body("Organization not found: " + orgName);
         }
+
+//        Tiers tierEntity=tiersRepository.findByName(tier)
+//                .orElseThrow(() -> new IllegalArgumentException("Tier not found: " + tier));
         // create a new ProcessingElement
         com.dapm.security_service.models.ProcessingElement peB = com.dapm.security_service.models.ProcessingElement.builder()
                 .id(UUID.randomUUID())
@@ -208,9 +220,10 @@ public class ProcessingElementUploadController {
                 .templateId(templateID)
                 .instanceNumber(0)
                 .hostURL("http://"+orgName.toLowerCase()+":8080")
-                .inputs(inputs) // You can set inputs as needed
-                .output(output) // You can set outputs as needed
+                .inputs(inputs)
+                .output(output)
                 .tier(tier)
+                .riskLevel(riskLevel)
                 .build();
         // save the ProcessingElement to the repository
         processingElementRepository.save(peB);

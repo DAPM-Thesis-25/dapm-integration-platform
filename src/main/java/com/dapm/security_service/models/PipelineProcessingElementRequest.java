@@ -21,18 +21,17 @@ public class PipelineProcessingElementRequest {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pipeline_pe_id", nullable = false)
-    private ProcessingElement pipelineNode;
+    @JoinColumn(name = "pipeline_pe_id")
+    private ProcessingElement processingElement;
+
+    @Column(name = "instance_number")
+    private Integer instanceNumber;
 
     @Column(name = "pipeline_id", nullable = false)
-    private UUID pipelineId;
+    private String pipelineName;
 
-    // Instead of ManyToOne User, we store a snapshot:
     @Embedded
     private RequesterInfo requesterInfo;
-
-    @Column(name = "requested_execution_count")
-    private int requestedExecutionCount;
 
     @Column(name = "requested_duration_hours")
     private int requestedDurationHours;
@@ -44,12 +43,6 @@ public class PipelineProcessingElementRequest {
     @Column(name = "allowedDurationHours", nullable = true)
     private Integer allowedDurationHours;
 
-    @Column(name = "allowedNoExecutions", nullable = true)
-    private Integer allowedNoExecutions;
-
-    @Column(name = "allowedDataUsagePercentage", nullable = true)
-    private Integer allowedDataUsagePercentage;
-
     @Column(name = "approval_token", length = 4096)
     private String approvalToken;
 
@@ -58,4 +51,9 @@ public class PipelineProcessingElementRequest {
 
     @Column(name = "webhook_url")
     private String webhookUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pipeline_pe_instance_id")
+    private PipelineProcessingElementInstance pipelineProcessingElementInstance;
+
 }

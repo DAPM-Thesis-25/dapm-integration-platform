@@ -15,6 +15,23 @@ services:
     networks:
       - dapm_network
 
+  pgadmin_orga:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin_orga
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@orga.com   # ✅ use .com or any real TLD
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8085:80"   # pgAdmin on http://localhost:8085
+    depends_on:
+      - postgres_orga
+    networks:
+      - dapm_network
+    volumes:
+      - pgadmin_orga_data:/var/lib/pgadmin
+
+
+
   postgres_orgb:
     image: postgres:14
     container_name: dapm_postgres_orgb
@@ -147,6 +164,7 @@ volumes:
   orga_data:
   orgb_data:
   orgc_data:
+  pgadmin_orga_data:
 
 networks:
   dapm_network:

@@ -1,9 +1,11 @@
 package com.dapm.security_service.controllers.PeerApi;
 import com.dapm.security_service.models.SubscriberOrganization;
+import com.dapm.security_service.models.Tiers;
 import com.dapm.security_service.models.enums.SubscriptionTier;
 import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
 import com.dapm.security_service.repositories.SubscriberOrganizationRepository;
+import com.dapm.security_service.repositories.TiersRepository;
 import com.dapm.security_service.services.TokenService;
 import com.dapm.security_service.services.TokenVerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,8 @@ public  class PeerHandshakeController {
     private SubscriberOrganizationRepository subscriberOrganizationRepository;
 
     @Autowired
+    TiersRepository tiersRepository;
+    @Autowired
     public PeerHandshakeController(TokenService tokenService,
                                    TokenVerificationService verificationService,
                                    ProcessingElementRepository peRepository) {
@@ -39,28 +43,9 @@ public  class PeerHandshakeController {
         return ResponseEntity.ok(jwt);
     }
 
-//    @PostMapping("/handshake")
-//    public ResponseEntity<HandshakeResponse> handshake(@RequestBody HandshakeRequest request) {
-//        // 1. Verify incoming token and extract callerOrg
-//        String callerOrg = verificationService.verifyTokenAndGetOrganization(request.getToken());
-//
-//        // 2. Fetch visible PE templates
-//        List<ProcessingElementDto> templates = peRepository
-//                .findByOwnerOrganization_NameOrVisibilityContaining(callerOrg, callerOrg)
-//                .stream()
-//                .map(ProcessingElementDto::new)
-//                .collect(Collectors.toList());
-//
-//        // 3. Sign response token
-//        String responseToken = tokenService.generateHandshakeToken(300);  // 5 minutes
-//
-//        // 4. Build and return payload
-//        HandshakeResponse resp = new HandshakeResponse(responseToken, templates);
-//        return ResponseEntity.ok(resp);
-//    }
 
     @PostMapping("/handshake")
-    public ResponseEntity<String> handshake(@RequestBody HandshakeRequest request) {
+    public ResponseEntity<?> handshake(@RequestBody HandshakeRequest request) {
         try {
             // 1. Verify incoming token
             String callerOrg = verificationService.verifyTokenAndGetOrganization(request.getToken());
@@ -71,9 +56,14 @@ public  class PeerHandshakeController {
                         .orElseGet(() -> subscriberOrganizationRepository.save(
                                 new SubscriberOrganization(UUID.randomUUID(), callerOrg, SubscriptionTier.FREE)
                         ));
+                Tiers tier=tiersRepository.findByName(Tier.FREE).orElseThrow(()->new IllegalArgumentException("Tier not found"));
 
                 // 3. Just return OK
-                return ResponseEntity.ok("Handshake received from " + callerOrg);
+                HandshakeResponse response = new HandshakeResponse(
+                        tier.getMaxHours()
+                );
+
+                return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.badRequest().body("Token verification failed.");
             }
@@ -92,12 +82,11 @@ public  class PeerHandshakeController {
         public void setToken(String token) { this.token = token; }
     }
     public static class HandshakeResponse {
-        private String token;
-
-        public HandshakeResponse(String token) {
-            this.token = token;
+        private Integer maxHours;
+        public HandshakeResponse(Integer maxHours) {
+            this.maxHours = maxHours;
         }
-        public String getToken() { return token; }
-
+        public Integer getMaxHours() { return maxHours; }
     }
+
 }

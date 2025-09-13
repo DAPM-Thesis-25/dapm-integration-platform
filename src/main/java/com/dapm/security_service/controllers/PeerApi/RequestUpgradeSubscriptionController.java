@@ -1,11 +1,14 @@
 package com.dapm.security_service.controllers.PeerApi;
 
 import com.dapm.security_service.models.SubscriberOrganization;
+import com.dapm.security_service.models.Tiers;
 import com.dapm.security_service.models.Voucher;
 import com.dapm.security_service.models.dtos2.SubscriptionRequestDto;
 import com.dapm.security_service.models.enums.SubscriptionTier;
+import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.SubscriberOrganizationRepository;
 
+import com.dapm.security_service.repositories.TiersRepository;
 import com.dapm.security_service.repositories.VoucherRepository;
 import com.dapm.security_service.services.TokenVerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,27 +26,29 @@ public class RequestUpgradeSubscriptionController {
     @Autowired private SubscriberOrganizationRepository subscriptionRepository;
     @Autowired
     private TokenVerificationService verificationService;
+    @Autowired
+    private TiersRepository tiersRepository;
     @PostMapping("/upgrade-subscription")
     public ResponseEntity<?> upgradeSubscription(@RequestBody SubscriptionRequestDto dto) {
         // 1. Validate voucher
         Optional<Voucher> voucherOpt = voucherRepository.findByCode(dto.getVoucher());
         if (voucherOpt.isEmpty()) {
             return ResponseEntity.badRequest().body(
-                    new UpgradeResponse(false, "Invalid voucher code",null)
+                    new UpgradeResponse(false, "Invalid voucher code",null,null)
             );
         }
 
         Voucher voucher = voucherOpt.get();
         if (voucher.isRedeemed()) {
             return ResponseEntity.badRequest().body(
-                    new UpgradeResponse(false, "Voucher already redeemed",null)
+                    new UpgradeResponse(false, "Voucher already redeemed",null, null)
             );
         }
 
         String callerOrg = verificationService.verifyTokenAndGetOrganization(dto.getToken());
         if (callerOrg==null) {
             return ResponseEntity.status(403).body(
-                    new UpgradeResponse(false, "Token organization mismatch",null)
+                    new UpgradeResponse(false, "Token organization mismatch",null,  null)
             );
         }
 
@@ -59,14 +64,16 @@ public class RequestUpgradeSubscriptionController {
         voucher.setRedeemed(true);
         voucher.setRedeemedAt(Instant.now());
         voucherRepository.save(voucher);
+        Tiers tier=tiersRepository.findByName(Tier.valueOf(voucher.getTier().name())).orElseThrow(()->new IllegalArgumentException("Tier not found"));
+
 
         // 4. Return success
         return ResponseEntity.ok(
                 new UpgradeResponse(true,
-                        "Subscription upgraded to tier: " + voucher.getTier(),voucher.getTier())
+                        "Subscription upgraded to tier: " + voucher.getTier(),voucher.getTier(),tier.getMaxHours())
         );
     }
 
     // Simple DTO for responses
-    record UpgradeResponse(boolean success, String message, SubscriptionTier tier) {}
+    record UpgradeResponse(boolean success, String message, SubscriptionTier tier, Integer maxHours) {}
 }

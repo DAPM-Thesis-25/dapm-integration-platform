@@ -2,6 +2,7 @@ package com.dapm.security_service.services;
 
 import com.dapm.security_service.models.PipelineProcessingElementRequest;
 import com.dapm.security_service.models.User;
+import com.dapm.security_service.models.dtos2.PipelineProcessingElementRequestOutboundDto;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,10 +55,10 @@ public class TokenService {
         Instant now = Instant.now();
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("pipelineId", request.getPipelineId().toString());
-        claims.put("pipelineNodeId", request.getPipelineNode().getId().toString());
+        claims.put("pipelineId", request.getPipelineName());
+//        claims.put("pipelineNodeId", request.getProcessingElement().getId().toString());
         claims.put("requesterIdUsername", request.getRequesterInfo().getRequesterId());
-        claims.put("allowedExecutions", request.getRequestedExecutionCount());
+//        claims.put("allowedExecutions", request.getRequestedExecutionCount());
         claims.put("allowedDurationHours", request.getRequestedDurationHours());
 
         return Jwts.builder()
@@ -113,4 +114,34 @@ public class TokenService {
 
         return token;
     }
+
+    public String generateApprovalToken(PipelineProcessingElementRequestOutboundDto request,
+                                        int allowedDurationHours) {
+        Instant now = Instant.now();
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("pipelineId", request.getPipelineName());
+        claims.put("peTemplateId", request.getProcessingElementName());
+        claims.put("requestId", request.getId().toString());
+        claims.put("requesterOrg", request.getRequesterInfo().getOrganization());
+        claims.put("allowedDurationHours", allowedDurationHours);
+        claims.put("instanceNumber", request.getInstanceNumber());
+
+        // token expiry: short-lived (e.g. 15 minutes)
+//        Instant tokenExpiry = now.plusSeconds(15 * 60L);
+        Instant tokenExpiry = now.plusSeconds(60);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject("approval-token")           // subject meaning: capability token
+                .setIssuer(orgId)                       // OrgB
+                .setAudience(request.getRequesterInfo().getOrganization()) // OrgA
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(tokenExpiry))
+                .setId(UUID.randomUUID().toString())    // jti
+                .signWith(signingKeyPair.getPrivate(), SignatureAlgorithm.RS256)
+                .setHeaderParam("kid", kidValue)
+                .compact();
+    }
+
 }
