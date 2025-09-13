@@ -231,17 +231,19 @@ public class PipelineConfigurationController {
                     .collect(Collectors.toList());
 
             // Collect missing elements: those with no PENDING request
-            List<MissingPermissionsDto> missingPermissions = partnerElementsEntities.stream()
+            List<MissingPermissionsDto> missingPermissions = pipeline.getProcessingElements().stream()
+                    .filter(pe -> pe.getOwnerPartnerOrganization() != null)   // ✅ external only
                     .filter(pe -> !pipelinePeReqRepo
                             .existsByPipelineNameAndPipelineProcessingElementInstanceAndStatus(
-                                    pipeline.getName(),          // matches column pipeline_id
+                                    pipeline.getName(),
                                     pipelinePeInstanceRepo.findByPipelineAndProcessingElement(pipeline, pe)
-                                            .orElseThrow(() -> new IllegalStateException("Pipeline PE Instance not found")),      // match the specific instance
+                                            .orElseThrow(() -> new IllegalStateException("Pipeline PE Instance not found")),
                                     AccessRequestStatus.APPROVED))
                     .map(pe -> new MissingPermissionsDto(
                             pe.getTemplateId(),
                             pe.getOwnerPartnerOrganization().getName()))
-                    .collect(Collectors.toList());
+                    .toList();
+
 
             if (missingPermissions.isEmpty()) {
                 validationDto.setStatus("VALID");

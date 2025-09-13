@@ -1,5 +1,6 @@
 package com.dapm.security_service.controllers.PeerApi;
 
+import com.dapm.security_service.services.TokenVerificationService;
 import communication.API.request.PEInstanceRequest;
 import communication.API.response.PEInstanceResponse;
 import communication.ConsumerFactory;
@@ -7,6 +8,7 @@ import communication.ProducerFactory;
 import communication.config.ConsumerConfig;
 import communication.config.ProducerConfig;
 import communication.message.Message;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,8 @@ import repository.TemplateRepository;
 import utils.IDGenerator;
 import utils.JsonUtil;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/pipelineBuilder")
 public class PipelineBuilderController {
@@ -29,6 +33,7 @@ public class PipelineBuilderController {
     private final ConsumerFactory consumerFactory;
     private final TemplateRepository templateRepository;
     private final PEInstanceRepository peInstanceRepository;
+    @Autowired private TokenVerificationService tokenVerificationService;
 
     @Autowired
     public PipelineBuilderController(TemplateRepository templateRepository,
@@ -42,9 +47,26 @@ public class PipelineBuilderController {
     }
 
     @PostMapping("/source/templateID/{templateID}")
-    public ResponseEntity<PEInstanceResponse> configureSource(@PathVariable("templateID") String templateID, @RequestBody PEInstanceRequest requestBody) {
-        System.out.println("We received your requestsssss");
+    public ResponseEntity<?> configureSource(@PathVariable("templateID") String templateID, @RequestBody PEInstanceRequest requestBody) {
+//        boolean isValid = tokenVerificationService.verifyTokenIssuedByMe(requestBody.getToken());
+//        if (!isValid) {
+//            return ResponseEntity.status(401)
+//                    .body(Map.of("error", "Invalid or expired token"));
+//        }
+        Claims claims;
+        try {
+            claims = tokenVerificationService.verifyAndExtractClaims(requestBody.getToken());
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
+        }
+
+        // ✅ enforce that this token approves this specific template
+        String approvedTemplateId = claims.get("peTemplateId", String.class);
         String decodedTemplateID = JsonUtil.decode(templateID);
+        if (!decodedTemplateID.equals(approvedTemplateId)) {
+            return ResponseEntity.status(403).body(Map.of("error", "Token not valid for this PE"));
+        }
+
         Source<Message> source = templateRepository.createInstanceFromTemplate(
                 decodedTemplateID,
                 requestBody.getConfiguration());
@@ -66,8 +88,20 @@ public class PipelineBuilderController {
     }
 
     @PostMapping("/operator/templateID/{templateID}")
-    public ResponseEntity<PEInstanceResponse> createOperator(@PathVariable("templateID") String templateID, @RequestBody PEInstanceRequest requestBody) {
+    public ResponseEntity<?> createOperator(@PathVariable("templateID") String templateID, @RequestBody PEInstanceRequest requestBody) {
+        Claims claims;
+        try {
+            claims = tokenVerificationService.verifyAndExtractClaims(requestBody.getToken());
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
+        }
+
+        // ✅ enforce that this token approves this specific template
+        String approvedTemplateId = claims.get("peTemplateId", String.class);
         String decodedTemplateID = JsonUtil.decode(templateID);
+        if (!decodedTemplateID.equals(approvedTemplateId)) {
+            return ResponseEntity.status(403).body(Map.of("error", "Token not valid for this PE"));
+        }
         Operator<Message, Message> operator = templateRepository.createInstanceFromTemplate(
                 decodedTemplateID,
                 requestBody.getConfiguration());
@@ -90,8 +124,20 @@ public class PipelineBuilderController {
     }
 
     @PostMapping("/sink/templateID/{templateID}")
-    public ResponseEntity<PEInstanceResponse> createSink(@PathVariable("templateID") String templateID, @RequestBody PEInstanceRequest requestBody) {
+    public ResponseEntity<?> createSink(@PathVariable("templateID") String templateID, @RequestBody PEInstanceRequest requestBody) {
+        Claims claims;
+        try {
+            claims = tokenVerificationService.verifyAndExtractClaims(requestBody.getToken());
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
+        }
+
+        // ✅ enforce that this token approves this specific template
+        String approvedTemplateId = claims.get("peTemplateId", String.class);
         String decodedTemplateID = JsonUtil.decode(templateID);
+        if (!decodedTemplateID.equals(approvedTemplateId)) {
+            return ResponseEntity.status(403).body(Map.of("error", "Token not valid for this PE"));
+        }
         Sink sink = templateRepository.createInstanceFromTemplate(
                 decodedTemplateID,
                 requestBody.getConfiguration());

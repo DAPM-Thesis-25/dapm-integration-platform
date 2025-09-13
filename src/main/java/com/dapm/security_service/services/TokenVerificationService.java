@@ -5,15 +5,29 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import org.springframework.stereotype.Service;
 
+import java.security.KeyPair;
 import java.security.PublicKey;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class TokenVerificationService {
 
     private final PublicKeysService publicKeysService;
 
-    public TokenVerificationService(PublicKeysService publicKeysService) {
+    private final PublicKey publicKey;
+    private final Set<String> usedJtis = Collections.synchronizedSet(new HashSet<>());
+    private final Map<String, Instant> revokedJtis = new ConcurrentHashMap<>();
+
+
+
+    public TokenVerificationService(PublicKeysService publicKeysService, KeyPair signingKeyPair) {
         this.publicKeysService = publicKeysService;
+        this.publicKey = signingKeyPair.getPublic();
     }
 
     /**
@@ -77,6 +91,31 @@ public class TokenVerificationService {
 
         } catch (Exception e) {
             return false;
+        }
+    }
+    /**
+     *
+     * Verify a JWT that was issued by *this service* (using local key).
+     */
+    public Claims verifyAndExtractClaims(String token) {
+        try {
+            Jws<Claims> jws = Jwts.parserBuilder()
+                    .setSigningKey(publicKey)
+                    .build()
+                    .parseClaimsJws(token);
+
+            Claims claims = jws.getBody();
+
+            // Enforce single-use via jti
+            String jti = claims.getId();
+            if (jti == null || usedJtis.contains(jti)) {
+                throw new RuntimeException("Replay detected or missing jti");
+            }
+            usedJtis.add(jti);
+
+            return claims;
+        } catch (Exception e) {
+            throw new RuntimeException("Token verification failed", e);
         }
     }
 }

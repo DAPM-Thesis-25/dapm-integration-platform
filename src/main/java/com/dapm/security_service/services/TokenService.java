@@ -127,8 +127,9 @@ public class TokenService {
         claims.put("allowedDurationHours", allowedDurationHours);
         claims.put("instanceNumber", request.getInstanceNumber());
 
-        // absolute expiry: now + allowedDurationHours
-        Instant expiry = now.plusSeconds(allowedDurationHours * 3600L);
+        // token expiry: short-lived (e.g. 15 minutes)
+//        Instant tokenExpiry = now.plusSeconds(15 * 60L);
+        Instant tokenExpiry = now.plusSeconds(60);
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -136,10 +137,11 @@ public class TokenService {
                 .setIssuer(orgId)                       // OrgB
                 .setAudience(request.getRequesterInfo().getOrganization()) // OrgA
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(expiry))
+                .setExpiration(Date.from(tokenExpiry))
                 .setId(UUID.randomUUID().toString())    // jti
                 .signWith(signingKeyPair.getPrivate(), SignatureAlgorithm.RS256)
                 .setHeaderParam("kid", kidValue)
                 .compact();
     }
+
 }
