@@ -92,6 +92,11 @@ public class ValidatePipelineController {
 
             processingElements.add(pee);
         }
+
+        // print processing elements
+        for (ProcessingElement pe : processingElements) {
+            System.out.println("Processing Element: " + pe.getTemplateId() + " Instance Number: " + pe.getInstanceNumber());
+        }
         pipeline.setProcessingElements(processingElements);
 
         pipelineRepositoryy.save(pipeline);

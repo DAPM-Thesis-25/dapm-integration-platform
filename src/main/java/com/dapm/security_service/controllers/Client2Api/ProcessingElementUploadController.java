@@ -38,7 +38,7 @@ import pipeline.processingelement.ProcessingElement;
 import repository.TemplateRepository;
 
 @RestController
-@RequestMapping("/templates")
+@RequestMapping("/api/templates")
 public class ProcessingElementUploadController {
 
     @Value("${runtime.templates.root:/runtime-templates}")
@@ -103,7 +103,7 @@ public class ProcessingElementUploadController {
             MultipartFile file,
             @RequestPart("configSchema") MultipartFile file2,
             @RequestParam(value = "tier", required = true) Tier tier,
-            @RequestParam(value = "riskLevel", required = true) String riskLevel,
+            @RequestParam(value = "riskLevel", required = false) String riskLevel,
             @RequestParam(value = "output", required = false) String output,
             @RequestParam(value = "inputs", required = false) Set<String> inputs
 

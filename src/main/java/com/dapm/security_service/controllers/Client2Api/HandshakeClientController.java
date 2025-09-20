@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/handshake")
+@RequestMapping("/api/handshake")
 public class HandshakeClientController {
 
     private final RestTemplate restTemplate = new RestTemplate();

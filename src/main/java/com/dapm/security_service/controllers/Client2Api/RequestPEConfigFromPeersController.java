@@ -18,7 +18,7 @@ import java.nio.file.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("/externalPeerConfigs")
+@RequestMapping("/api/external-peer-configs")
 public class RequestPEConfigFromPeersController {
 
     @Value("${runtime.configs.root:/runtime-configs}")

@@ -38,7 +38,7 @@ public class ProcessingElement {
     @Column(name = "template_id", nullable = false, unique = true)
     private String templateId;
 
-    @Column(name = "risk_level", nullable = false)
+    @Column(name = "risk_level", nullable = true)
     private String riskLevel;
 
     @Column(name = "instance_number", nullable = false)
@@ -64,6 +64,21 @@ public class ProcessingElement {
                 (ownerOrganization != null && ownerPartnerOrganization != null)) {
             throw new IllegalArgumentException("Exactly one owner must be set: either ownerOrganization or ownerPartnerOrganization.");
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProcessingElement)) return false;
+        ProcessingElement that = (ProcessingElement) o;
+        // use id if present, otherwise fallback to templateId
+        return (id != null && id.equals(that.id)) ||
+                (templateId != null && templateId.equals(that.templateId));
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : (templateId != null ? templateId.hashCode() : 0);
     }
 
 }

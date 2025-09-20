@@ -129,7 +129,7 @@ public  class PeAccessRequest {
             ValidatedPipelineConfig config = validatePipelineRepository.getPipeline(request
                     .getPipelineName());
                 if (config != null) {
-                    config.getExternalPEsTokens().put(request.getProcessingElement().getTemplateId(), requestResponse.getToken());
+                    config.getExternalPEsTokens().put(request.getProcessingElement().getTemplateId(), tokenService.signExistingToken(requestResponse.getToken(),300));
                 } else {
                     throw new IllegalArgumentException("Pipeline not found: " + request.getPipelineName());
                 }
