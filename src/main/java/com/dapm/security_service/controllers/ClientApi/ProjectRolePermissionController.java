@@ -3,6 +3,7 @@ package com.dapm.security_service.controllers.ClientApi;
 import com.dapm.security_service.models.*;
 import com.dapm.security_service.models.dtos.AssignProjectRolePermissionDto;
 import com.dapm.security_service.models.dtos.ProjectRolePermissionDto;
+import com.dapm.security_service.models.enums.ProjectPermAction;
 import com.dapm.security_service.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,31 +36,34 @@ public class ProjectRolePermissionController {
 
     @PreAuthorize("hasAuthority('ASSIGN_PROJECT_ROLES')")
     @PostMapping
-    public ResponseEntity<ProjectRolePermissionDto> assignPermission(@RequestBody AssignProjectRolePermissionDto request) {
+    public ResponseEntity<?> assignPermission(@RequestBody AssignProjectRolePermissionDto request) {
         Project project = projectRepository.findByName(request.getProjectName())
                 .orElseThrow(() -> new IllegalArgumentException("Project not found"));
         ProjectRole role = project.getProjectRoles().stream()
                 .filter(r -> r.getName().equalsIgnoreCase(request.getRoleName()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Role not found in project"));
-        ProjectPermission permission = projPermissionRepository.findByAction(request.getAction());
-        if (permission == null) {
-            throw new IllegalArgumentException("Permission not found");
+
+        for (ProjectPermAction action : request.getAction()) {
+            ProjectPermission projectPermission=projPermissionRepository.findByAction(action);
+            if (projectPermission == null) {
+                throw new IllegalArgumentException("Permission not found");
+            }
+            var existing = projectRolePermissionRepository.findByProjectAndPermissionAndRole(project, projectPermission, role);
+            if (existing.isPresent()) {
+                continue;
+            }
+            var newMapping = ProjectRolePermission.builder()
+                    .id(UUID.randomUUID())
+                    .project(project)
+                    .role(role)
+                    .permission(projectPermission)
+                    .build();
+            newMapping = projectRolePermissionRepository.save(newMapping);
         }
 
-        var existing = projectRolePermissionRepository.findByProjectAndPermissionAndRole(project, permission, role);
-        if (existing.isPresent()) {
-            return ResponseEntity.ok(new ProjectRolePermissionDto(existing.get()));
-        }
 
-        var newMapping = ProjectRolePermission.builder()
-                .id(UUID.randomUUID())
-                .project(project)
-                .role(role)
-                .permission(permission)
-                .build();
-        newMapping = projectRolePermissionRepository.save(newMapping);
-        return ResponseEntity.ok(new ProjectRolePermissionDto(newMapping));
+        return ResponseEntity.ok().build();
     }
     @PreAuthorize("hasAuthority('ASSIGN_PROJECT_ROLES')")
     @DeleteMapping("/{id}")

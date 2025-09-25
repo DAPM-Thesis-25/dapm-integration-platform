@@ -144,6 +144,14 @@ public class PipelineConfigurationController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/all-requests")
+    public List<PipelineRequestDto> getAllRequest() {
+        List<PipelineProcessingElementRequest> requests = pipelinePeReqRepo.findAll();
+
+        return requests.stream()
+                .map(PipelineRequestDto::fromEntity)
+                .collect(Collectors.toList());
+    }
 
 
 
@@ -204,40 +212,49 @@ public class PipelineConfigurationController {
         return remoteResponse;
     }
 
+//    @PostMapping("revoke-token/{requestId}")
+//    public ConfirmationResponse revokeTokenR(@PathVariable UUID requestId) {
+//        PipelineProcessingElementRequest request = pipelinePeReqRepo.findById(requestId)
+//                .orElseThrow(() -> new RuntimeException("Request not found"));
+//
+//        if (request.getStatus() != AccessRequestStatus.APPROVED) {
+//            throw new RuntimeException("Only approved requests can be revoked");
+//        }
+//
+//        tokenVerificationService.revokeJti(request.getApprovalToken());
+//
+//        request.setStatus(AccessRequestStatus.REJECTED);
+//        pipelinePeReqRepo.save(request);
+//
+//        // Notify the requesting organization about the revocation
+//        var response = new RequestResponse();
+//        response.setRequestId(request.getId());
+//        response.setRequestStatus(request.getStatus());
+//        response.setToken("The token has been revoked and is no longer valid.");
+//
+//        ConfirmationResponse remoteResponse = orgResponseService.sendResponseToOrg(response,
+//                request.getRequesterInfo().getOrganization());
+//
+//        return remoteResponse;
+//    }
+
+
     @PostMapping("revoke-token/{requestId}")
-    public ConfirmationResponse revokeTokenR(@PathVariable UUID requestId) {
+    public String revokeToken(@PathVariable UUID requestId) {
         PipelineProcessingElementRequest request = pipelinePeReqRepo.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request not found"));
-
-        if (request.getStatus() != AccessRequestStatus.APPROVED) {
-            throw new RuntimeException("Only approved requests can be revoked");
-        }
-
         tokenVerificationService.revokeJti(request.getApprovalToken());
+//
+//        if (request.getStatus() != AccessRequestStatus.APPROVED) {
+//            throw new RuntimeException("Only approved requests can be revoked");
+//        }
+
+//        tokenVerificationService.revokeJti(request.getApprovalToken());
 
         request.setStatus(AccessRequestStatus.REJECTED);
         pipelinePeReqRepo.save(request);
-
-        // Notify the requesting organization about the revocation
-        var response = new RequestResponse();
-        response.setRequestId(request.getId());
-        response.setRequestStatus(request.getStatus());
-        response.setToken("The token has been revoked and is no longer valid.");
-
-        ConfirmationResponse remoteResponse = orgResponseService.sendResponseToOrg(response,
-                request.getRequesterInfo().getOrganization());
-
-        return remoteResponse;
+        return "Token revoked successfully";
     }
-
-
-//    @PostMapping("revoke-token/{requestId}")
-//    public String revokeToken(@PathVariable UUID requestId) {
-//        PipelineProcessingElementRequest request = pipelinePeReqRepo.findById(requestId)
-//                .orElseThrow(() -> new RuntimeException("Request not found"));
-//        tokenVerificationService.revokeJti(request.getApprovalToken());
-//        return "Token revoked successfully";
-//    }
 
 
 
@@ -271,7 +288,7 @@ public class PipelineConfigurationController {
 
             // Collect missing elements: those with no PENDING request
             List<MissingPermissionsDto> missingPermissions = pipeline.getProcessingElements().stream()
-                    .filter(pe -> pe.getOwnerPartnerOrganization() != null)   // ✅ external only
+                    .filter(pe -> pe.getOwnerPartnerOrganization() != null)
                     .filter(pe -> !pipelinePeReqRepo
                             .existsByPipelineNameAndPipelineProcessingElementInstanceAndStatus(
                                     pipeline.getName(),
@@ -359,7 +376,8 @@ public class PipelineConfigurationController {
             String organization,
             AccessRequestStatus status,
             int requestedDurationHours,
-            String approvalToken
+            String approvalToken,
+            String templateId
 
     ) {
         public static PipelineRequestDto fromEntity(PipelineProcessingElementRequest entity) {
@@ -369,7 +387,8 @@ public class PipelineConfigurationController {
                     entity.getRequesterInfo().getOrganization(),
                     entity.getStatus(),
                     entity.getRequestedDurationHours(),
-                    entity.getApprovalToken()
+                    entity.getApprovalToken(),
+                    entity.getProcessingElement().getTemplateId()
             );
         }
     }

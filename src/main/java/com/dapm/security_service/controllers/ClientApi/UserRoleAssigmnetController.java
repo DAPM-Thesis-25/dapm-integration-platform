@@ -61,7 +61,12 @@ public class UserRoleAssigmnetController {
                 .findByUserAndProject(user, project);
 
         if (existingAssignment.isPresent()) {
-            return ResponseEntity.ok(toDto(existingAssignment.get()));
+            // Force init before mapping to DTO
+            UserRoleAssignment ea = existingAssignment.get();
+            ea.getUser().getUsername();
+            ea.getProject().getName();
+            ea.getRole().getName();
+            return ResponseEntity.ok(toDto(ea));
         }
 
         UserRoleAssignment assignment = UserRoleAssignment.builder()
@@ -69,12 +74,15 @@ public class UserRoleAssigmnetController {
                 .project(project)
                 .role(role)
                 .build();
-        System.out.println(assignment + " weeeee");
 
-        userRoleAssignmentRepository.save(assignment);
+        UserRoleAssignment saved = userRoleAssignmentRepository.save(assignment);
 
-        return ResponseEntity.ok(toDto(assignment));
+        // 👇 Force initialization here
+        saved.getUser().getUsername();
+        saved.getProject().getName();
+        saved.getRole().getName();
 
+        return ResponseEntity.ok(toDto(saved));
     }
 
     public static AssignUserRoleDto toDto(UserRoleAssignment assignment) {

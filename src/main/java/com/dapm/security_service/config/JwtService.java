@@ -1,7 +1,6 @@
 package com.dapm.security_service.config;
 
 import com.dapm.security_service.models.User;
-import com.dapm.security_service.models.Role;
 import com.dapm.security_service.models.UserRoleAssignment;
 import com.dapm.security_service.repositories.UserRoleAssignmentRepository;
 import io.jsonwebtoken.Claims;
