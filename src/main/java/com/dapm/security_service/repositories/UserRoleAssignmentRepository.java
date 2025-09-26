@@ -12,4 +12,7 @@ public interface UserRoleAssignmentRepository extends JpaRepository<UserRoleAssi
     Optional<UserRoleAssignment> findByUserAndProject(User user, Project project);
     List<UserRoleAssignment> findByUser(User user);
 
+    List<UserRoleAssignment> findByProject(Project project);
+
+
 }

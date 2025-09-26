@@ -27,6 +27,22 @@ public class UserRoleAssigmnetController {
     @Autowired
     private UserRoleAssignmentRepository userRoleAssignmentRepository;
 
+    // get all assignments by project
+    @GetMapping
+//    @PreAuthorize("hasAuthority('READ_USER_ROLES') or hasAuthority('READ_USER_PROJECT_ROLES:' + #projectName)")
+    public ResponseEntity<?> getAllAssignmentsByProject(@RequestParam String projectName) {
+        Optional<Project> projectOpt = projectRepository.findByName(projectName);
+        if (projectOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("Project not found");
+        }
+        Project project = projectOpt.get();
+        var assignments = userRoleAssignmentRepository.findByProject(project)
+                .stream()
+                .map(UserRoleAssigmnetController::toDto)
+                .toList();
+        return ResponseEntity.ok(assignments);
+    }
+
 
 
     @PostMapping("/assign")
@@ -84,6 +100,8 @@ public class UserRoleAssigmnetController {
 
         return ResponseEntity.ok(toDto(saved));
     }
+
+
 
     public static AssignUserRoleDto toDto(UserRoleAssignment assignment) {
         return new AssignUserRoleDto(
