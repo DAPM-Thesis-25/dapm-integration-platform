@@ -75,7 +75,7 @@ public class PeerRequestProcessingElementConfigsController {
             entry.put("tier", pe.getTier());
             entry.put("inputs", pe.getInputs());
             entry.put("output", pe.getOutput());
-            entry.put("riskLevel", pe.getRiskLevel());
+            entry.put("processingElementType", pe.getProcessingElementType());
 
             if (Files.exists(schemaPath) && schemaPath.startsWith(root)) {
                 String schemaContent = Files.readString(schemaPath);

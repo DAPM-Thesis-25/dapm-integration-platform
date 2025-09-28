@@ -50,6 +50,7 @@ public class ProjectController {
                 .map(project -> ResponseEntity.ok(new ProjectDto(project)))
                 .orElse(ResponseEntity.notFound().build());
     }
+
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('CREATE_PROJECT')")
     public ResponseEntity<ProjectDto> createProject(

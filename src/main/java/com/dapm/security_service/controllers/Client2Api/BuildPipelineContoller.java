@@ -60,7 +60,12 @@ public class BuildPipelineContoller {
     public ResponseEntity<?> executePipeline(
             @PathVariable String pipelineName
     ) throws JsonProcessingException {
+        Pipeline pipeline = pipelineRepository.findByName(pipelineName).
+                orElseThrow(() -> new RuntimeException("Pipeline not found"));
         executionService.start(pipelineName);
+        pipeline.setPipelinePhase(PipelinePhase.EXECUTING);
+        pipelineRepository.save(pipeline);
+
         return ResponseEntity.ok("Pipeline execution started successfully");
     }
 

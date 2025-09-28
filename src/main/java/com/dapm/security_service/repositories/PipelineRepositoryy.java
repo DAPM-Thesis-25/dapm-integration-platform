@@ -16,4 +16,5 @@ public interface PipelineRepositoryy extends JpaRepository<Pipeline, UUID> {
 
     // Using a defined EntityGraph (ensure you have updated the named entity graph in your Pipeline entity)
     Optional<Pipeline> findByName(String pipelineName);
+    List<Pipeline> findByProject_Name(String projectName);
 }

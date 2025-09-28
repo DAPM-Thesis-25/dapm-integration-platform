@@ -1,5 +1,6 @@
 package com.dapm.security_service.models;
 
+import com.dapm.security_service.models.enums.PeType;
 import com.dapm.security_service.models.enums.Tier;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,13 +34,13 @@ public class ProcessingElement {
     @Column(name = "tier", nullable = false)
     private Tier tier;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private PeType processingElementType;
 
     // The identifier of the template used for this processing element.
     @Column(name = "template_id", nullable = false, unique = true)
     private String templateId;
-
-    @Column(name = "risk_level", nullable = true)
-    private String riskLevel;
 
     @Column(name = "instance_number", nullable = false)
     private Integer instanceNumber;
@@ -57,6 +58,9 @@ public class ProcessingElement {
 
     @Column(name = "output", nullable = true)
     private String output;
+
+    @Column(name = "config_schema", columnDefinition = "TEXT")
+    private String configSchema;
 
 
     public void validateOwner() {

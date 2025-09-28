@@ -2,6 +2,7 @@ package com.dapm.security_service.controllers.Client2Api;
 
 import com.dapm.security_service.models.Organization;
 import com.dapm.security_service.models.Tiers;
+import com.dapm.security_service.models.enums.PeType;
 import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.OrganizationRepository;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
@@ -25,6 +26,7 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Objects;
@@ -103,9 +105,9 @@ public class ProcessingElementUploadController {
             MultipartFile file,
             @RequestPart("configSchema") MultipartFile file2,
             @RequestParam(value = "tier", required = true) Tier tier,
-            @RequestParam(value = "riskLevel", required = false) String riskLevel,
             @RequestParam(value = "output", required = false) String output,
-            @RequestParam(value = "inputs", required = false) Set<String> inputs
+            @RequestParam(value = "inputs", required = false) Set<String> inputs,
+            @RequestParam(value = "processingElementType", required = false)PeType processingElementType
 
             ) throws Exception {
 
@@ -214,6 +216,8 @@ public class ProcessingElementUploadController {
 //        Tiers tierEntity=tiersRepository.findByName(tier)
 //                .orElseThrow(() -> new IllegalArgumentException("Tier not found: " + tier));
         // create a new ProcessingElement
+        String configSchema = new String(file2.getBytes(), StandardCharsets.UTF_8);
+
         com.dapm.security_service.models.ProcessingElement peB = com.dapm.security_service.models.ProcessingElement.builder()
                 .id(UUID.randomUUID())
                 .ownerOrganization(org)
@@ -223,7 +227,8 @@ public class ProcessingElementUploadController {
                 .inputs(inputs)
                 .output(output)
                 .tier(tier)
-                .riskLevel(riskLevel)
+                .configSchema(configSchema)
+                .processingElementType(processingElementType)
                 .build();
         // save the ProcessingElement to the repository
         processingElementRepository.save(peB);

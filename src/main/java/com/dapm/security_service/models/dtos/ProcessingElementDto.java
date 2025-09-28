@@ -1,6 +1,7 @@
 package com.dapm.security_service.models.dtos;
 
 import com.dapm.security_service.models.ProcessingElement;
+import com.dapm.security_service.models.enums.PeType;
 import com.dapm.security_service.models.enums.Tier;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,7 +28,10 @@ public class ProcessingElementDto {
     private String output;
     private String hostURL;
     private Tier tier;
-    private String riskLevel;
+    private PeType processingElementType;
+
+    private String configSchema;
+
     public ProcessingElementDto(ProcessingElement processingElement) {
 //        this.id = processingElement.getId();
         this.templateId = processingElement.getTemplateId();
@@ -47,7 +51,8 @@ public class ProcessingElementDto {
 
         this.output = processingElement.getOutput();
         this.hostURL = processingElement.getHostURL();
-        this.riskLevel = processingElement.getRiskLevel();
+        this.processingElementType = processingElement.getProcessingElementType();
+        this.configSchema = processingElement.getConfigSchema();
     }
 
 }
