@@ -90,6 +90,13 @@ public class ProjectRolePermissionController {
                 .map(GetProjectRolePermissionDto::new)
                 .toList();
     }
+    @GetMapping("permission-actions")
+    public Set<ProjectPermAction> getAllPermissionActions() {
+        return projPermissionRepository.findAll()
+                .stream()
+                .map(ProjectPermission::getAction)
+                .collect(java.util.stream.Collectors.toSet());
+    }
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
