@@ -44,7 +44,7 @@ public class ValidatePipelineController {
     @Autowired private PipelinePeInstanceRepo instanceRepo;
     @Autowired private ProjectRepository projectRepository;
 
-    @PreAuthorize(" hasAuthority('CREATE_PIPELINE:' + #designPipelineDto.getProjectName())")
+    @PreAuthorize(" hasAuthority('VALIDATE_PIPELINE:' + #designPipelineDto.getProjectName())")
     @PostMapping("/design-pipeline")
     public ResponseEntity<?> validatePipeline(
             @RequestBody DesignPipelineDto designPipelineDto

@@ -4,6 +4,7 @@ import candidate_validation.ValidatedPipeline;
 import com.dapm.security_service.models.Pipeline;
 import com.dapm.security_service.models.dtos2.designpipeline.DesignPipelineDto;
 import com.dapm.security_service.models.enums.PipelinePhase;
+import com.dapm.security_service.models.enums.ProjectPermAction;
 import com.dapm.security_service.models.models2.ValidatedPipelineConfig;
 import com.dapm.security_service.repositories.PipelineRepositoryy;
 import com.dapm.security_service.repositories.ValidatePipelineRepository;
@@ -25,9 +26,8 @@ public class BuildPipelineContoller {
     @Autowired private PipelineExecutionService executionService;
 
 
-
     // create endpoint to build pipeline by sending pipeline name
-    @PreAuthorize("@pipelineAccessEvaluator.hasPermission(#pipelineName, authentication, 'ACCESS_REQUEST_PE')")
+    @PreAuthorize("@pipelineAccessEvaluator.hasPermission(#pipelineName, authentication, 'BUILD_PIPELINE')")
     @PostMapping("/{pipelineName}")
     public ResponseEntity<?> buildPipeline(
             @PathVariable String pipelineName
@@ -55,7 +55,7 @@ public class BuildPipelineContoller {
         return ResponseEntity.ok("Pipeline built successfully");
     }
 
-    @PreAuthorize("@pipelineAccessEvaluator.hasPermission(#pipelineName, authentication, 'ACCESS_REQUEST_PE')")
+    @PreAuthorize("@pipelineAccessEvaluator.hasPermission(#pipelineName, authentication, 'EXECUTE_PIPELINE')")
     @PostMapping("/execute/{pipelineName}")
     public ResponseEntity<?> executePipeline(
             @PathVariable String pipelineName
@@ -69,7 +69,7 @@ public class BuildPipelineContoller {
         return ResponseEntity.ok("Pipeline execution started successfully");
     }
 
-    @PreAuthorize("@pipelineAccessEvaluator.hasPermission(#pipelineName, authentication, 'ACCESS_REQUEST_PE')")
+    @PreAuthorize("@pipelineAccessEvaluator.hasPermission(#pipelineName, authentication, 'TERMINATE_PIPELINE')")
     @PostMapping("/terminate/{pipelineName}")
     public ResponseEntity<?> terminatePipeline(
             @PathVariable String pipelineName

@@ -70,20 +70,29 @@ public class ProjectController {
 
 
 
-
         Set<ProjectPermAction> leaderActions = Set.of(
                 ProjectPermAction.CONFIGURE_PIPELINE,
                 ProjectPermAction.UPDATE_PROJECT,
                 ProjectPermAction.ASSIGN_USER_PROJECT_ROLE,
                 ProjectPermAction.READ_PES
                 ,ProjectPermAction.CREATE_PIPELINE
+                ,ProjectPermAction.VALIDATE_PIPELINE
+                ,ProjectPermAction.BUILD_PIPELINE
+                ,ProjectPermAction.EXECUTE_PIPELINE
+                ,ProjectPermAction.TERMINATE_PIPELINE
+                ,ProjectPermAction.ACCESS_REQUEST_PE
+                ,ProjectPermAction.READ_PE
         );
         Set<ProjectPermAction> researcherActions = Set.of(
-                ProjectPermAction.CONFIGURE_PIPELINE,
-                ProjectPermAction.START_PIPELINE,
-                ProjectPermAction.READ_PIPELINE,
-                ProjectPermAction.READ_PIPELINES,
-                ProjectPermAction.CREATE_PIPELINE
+//                ProjectPermAction.UPDATE_PROJECT,
+                ProjectPermAction.READ_PES
+                ,ProjectPermAction.CREATE_PIPELINE
+                ,ProjectPermAction.VALIDATE_PIPELINE
+                ,ProjectPermAction.BUILD_PIPELINE
+                ,ProjectPermAction.EXECUTE_PIPELINE
+                ,ProjectPermAction.TERMINATE_PIPELINE
+//                ,ProjectPermAction.ACCESS_REQUEST_PE
+                ,ProjectPermAction.READ_PE
         );
         ProjectRole roleLeader=projectsRolesRepository.findByName("leader");
         ProjectRole roleResearcher=projectsRolesRepository.findByName("researcher");

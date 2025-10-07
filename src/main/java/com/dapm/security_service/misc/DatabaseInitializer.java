@@ -171,15 +171,17 @@ public class DatabaseInitializer implements CommandLineRunner {
         // create a project permission
         ProjectPermission projectPermission1=createProjectPermissionIfNotExistStatic(ProjectPermAction.READ_PE, UUID.randomUUID());
         ProjectPermission projectPermission2=createProjectPermissionIfNotExistStatic(ProjectPermAction.ACCESS_REQUEST_PE,UUID.randomUUID());
-        ProjectPermission projectPermission3=createProjectPermissionIfNotExistStatic(ProjectPermAction.INSTANTIATE_PE, UUID.randomUUID());
-        ProjectPermission projectPermission4=createProjectPermissionIfNotExistStatic(ProjectPermAction.INSTANTIATE_PIPELINE,UUID.randomUUID());
+        ProjectPermission projectPermission3=createProjectPermissionIfNotExistStatic(ProjectPermAction.BUILD_PIPELINE, UUID.randomUUID());
+        ProjectPermission projectPermission4=createProjectPermissionIfNotExistStatic(ProjectPermAction.EXECUTE_PIPELINE,UUID.randomUUID());
         ProjectPermission projectPermission5=createProjectPermissionIfNotExistStatic(ProjectPermAction.CONFIGURE_PIPELINE,UUID.randomUUID());
-        ProjectPermission projectPermission6=createProjectPermissionIfNotExistStatic(ProjectPermAction.START_PIPELINE,UUID.randomUUID());
-        ProjectPermission projectPermission7=createProjectPermissionIfNotExistStatic(ProjectPermAction.READ_PES, UUID.randomUUID());
-        ProjectPermission projectPermission8=createProjectPermissionIfNotExistStatic(ProjectPermAction.UPDATE_PROJECT,UUID.randomUUID());
-        ProjectPermission projectPermission9=createProjectPermissionIfNotExistStatic(ProjectPermAction.ASSIGN_USER_PROJECT_ROLE,UUID.randomUUID());
-        ProjectPermission projectPermission10=createProjectPermissionIfNotExistStatic(ProjectPermAction.CREATE_PIPELINE,UUID.randomUUID());
-
+        ProjectPermission projectPermission6=createProjectPermissionIfNotExistStatic(ProjectPermAction.TERMINATE_PIPELINE,UUID.randomUUID());
+        //ProjectPermission projectPermission7=createProjectPermissionIfNotExistStatic(ProjectPermAction.READ_PES, UUID.randomUUID());
+        ProjectPermission projectPermission7=createProjectPermissionIfNotExistStatic(ProjectPermAction.UPDATE_PROJECT,UUID.randomUUID());
+        ProjectPermission projectPermission8=createProjectPermissionIfNotExistStatic(ProjectPermAction.ASSIGN_USER_PROJECT_ROLE,UUID.randomUUID());
+        ProjectPermission projectPermission9=createProjectPermissionIfNotExistStatic(ProjectPermAction.CREATE_PIPELINE,UUID.randomUUID());
+        ProjectPermission projectPermission10=createProjectPermissionIfNotExistStatic(ProjectPermAction.VALIDATE_PIPELINE,UUID.randomUUID());
+        ProjectPermission projectPermission11=createProjectPermissionIfNotExistStatic(ProjectPermAction.CREATE_PIPELINE,UUID.randomUUID());
+        //ProjectPermission projectPermission13=createProjectPermissionIfNotExistStatic(ProjectPermAction.CREATE_PIPELINE,UUID.randomUUID());
 
 
 
@@ -191,16 +193,35 @@ public class DatabaseInitializer implements CommandLineRunner {
 
 
         ProjectRolePermission projectRolePermission=createProjectRolePermissionIfNotExistStatic(p,projectPermission1,projectRole2);
-        ProjectRolePermission projectRolePermission2=createProjectRolePermissionIfNotExistStatic(p,projectPermission8,projectRole2);
-        ProjectRolePermission projectRolePermission3=createProjectRolePermissionIfNotExistStatic(p,projectPermission5,projectRole2);
-        ProjectRolePermission projectRolePermission4=createProjectRolePermissionIfNotExistStatic(p,projectPermission2,projectRole2);
-        ProjectRolePermission projectRolePermission5=createProjectRolePermissionIfNotExistStatic(p,projectPermission9,projectRole2);
-        ProjectRolePermission projectRolePermission6=createProjectRolePermissionIfNotExistStatic(p,projectPermission10,projectRole2);
+        ProjectRolePermission projectRolePermission2=createProjectRolePermissionIfNotExistStatic(p,projectPermission2,projectRole2);
+        ProjectRolePermission projectRolePermission3=createProjectRolePermissionIfNotExistStatic(p,projectPermission3,projectRole2);
+        ProjectRolePermission projectRolePermission4=createProjectRolePermissionIfNotExistStatic(p,projectPermission4,projectRole2);
+        ProjectRolePermission projectRolePermission5=createProjectRolePermissionIfNotExistStatic(p,projectPermission5,projectRole2);
+        ProjectRolePermission projectRolePermission6=createProjectRolePermissionIfNotExistStatic(p,projectPermission6,projectRole2);
+        ProjectRolePermission projectRolePermission7=createProjectRolePermissionIfNotExistStatic(p,projectPermission7,projectRole2);
+        ProjectRolePermission projectRolePermission8=createProjectRolePermissionIfNotExistStatic(p,projectPermission8,projectRole2);
+        ProjectRolePermission projectRolePermission9=createProjectRolePermissionIfNotExistStatic(p,projectPermission9,projectRole2);
+        ProjectRolePermission projectRolePermission10=createProjectRolePermissionIfNotExistStatic(p,projectPermission10,projectRole2);
+        ProjectRolePermission projectRolePermission11=createProjectRolePermissionIfNotExistStatic(p,projectPermission11,projectRole2);
+
+        ProjectRolePermission projectRolePermission12=createProjectRolePermissionIfNotExistStatic(p,projectPermission1,projectRole1);
+//        ProjectRolePermission projectRolePermission13=createProjectRolePermissionIfNotExistStatic(p,projectPermission2,projectRole1);
+        ProjectRolePermission projectRolePermission113=createProjectRolePermissionIfNotExistStatic(p,projectPermission3,projectRole1);
+        ProjectRolePermission projectRolePermission14=createProjectRolePermissionIfNotExistStatic(p,projectPermission4,projectRole1);
+//        ProjectRolePermission projectRolePermission15=createProjectRolePermissionIfNotExistStatic(p,projectPermission5,projectRole1);
+        ProjectRolePermission projectRolePermission16=createProjectRolePermissionIfNotExistStatic(p,projectPermission6,projectRole1);
+        ProjectRolePermission projectRolePermission17=createProjectRolePermissionIfNotExistStatic(p,projectPermission7,projectRole1);
+//        ProjectRolePermission projectRolePermission18=createProjectRolePermissionIfNotExistStatic(p,projectPermission8,projectRole1);
+        ProjectRolePermission projectRolePermission19=createProjectRolePermissionIfNotExistStatic(p,projectPermission9,projectRole1);
+        ProjectRolePermission projectRolePermission110=createProjectRolePermissionIfNotExistStatic(p,projectPermission10,projectRole1);
+        ProjectRolePermission projectRolePermission111=createProjectRolePermissionIfNotExistStatic(p,projectPermission11,projectRole1);
+
 
         User user = userRepository.findByUsername("anna")
                 .orElseThrow(() -> new RuntimeException("User 'anna' not found"));
 
         UserRoleAssignment userRoleAssignment = createUserRoleAssignmentIfNotExist(user, p, projectRole2);
+
 
 
         Voucher voucher1=createVoucherIfNotExistStatic("BASIC-2025-ORG",false, SubscriptionTier.BASIC);

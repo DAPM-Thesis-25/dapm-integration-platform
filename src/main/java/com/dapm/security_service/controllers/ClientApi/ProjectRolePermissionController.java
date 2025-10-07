@@ -26,7 +26,7 @@ public class ProjectRolePermissionController {
     private final ProjectRepository projectRepository;
     private final ProjectsRolesRepository projectRoleRepository;
     private final ProjPermissionRepository projPermissionRepository;
-    @PreAuthorize("hasAuthority('ASSIGN_PROJECT_ROLES')")
+//    @PreAuthorize("hasAuthority('ASSIGN_PROJECT_ROLES')")
     @GetMapping
     public List<ProjectRolePermissionDto> getPermissions(@RequestParam String projectName) {
         Project project = projectRepository.findByName(projectName)
