@@ -1,5 +1,6 @@
 package com.dapm.security_service.models;
 
+import com.dapm.security_service.models.enums.PeType;
 import com.dapm.security_service.models.enums.Tier;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,13 +34,13 @@ public class ProcessingElement {
     @Column(name = "tier", nullable = false)
     private Tier tier;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private PeType processingElementType;
 
     // The identifier of the template used for this processing element.
     @Column(name = "template_id", nullable = false, unique = true)
     private String templateId;
-
-    @Column(name = "risk_level", nullable = false)
-    private String riskLevel;
 
     @Column(name = "instance_number", nullable = false)
     private Integer instanceNumber;
@@ -58,12 +59,30 @@ public class ProcessingElement {
     @Column(name = "output", nullable = true)
     private String output;
 
+    @Column(name = "config_schema", columnDefinition = "TEXT")
+    private String configSchema;
+
 
     public void validateOwner() {
         if ((ownerOrganization == null && ownerPartnerOrganization == null) ||
                 (ownerOrganization != null && ownerPartnerOrganization != null)) {
             throw new IllegalArgumentException("Exactly one owner must be set: either ownerOrganization or ownerPartnerOrganization.");
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProcessingElement)) return false;
+        ProcessingElement that = (ProcessingElement) o;
+        // use id if present, otherwise fallback to templateId
+        return (id != null && id.equals(that.id)) ||
+                (templateId != null && templateId.equals(that.templateId));
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : (templateId != null ? templateId.hashCode() : 0);
     }
 
 }

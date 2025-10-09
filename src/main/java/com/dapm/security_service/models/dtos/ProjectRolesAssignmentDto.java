@@ -11,5 +11,6 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 public class ProjectRolesAssignmentDto {
-    private String role = "";
+
+    private Set<String> roles = new HashSet<>();
 }

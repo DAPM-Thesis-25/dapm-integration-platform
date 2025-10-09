@@ -3,6 +3,7 @@ package com.dapm.security_service.controllers.Client2Api;
 import com.dapm.security_service.models.PublisherOrganization;
 import com.dapm.security_service.models.Tiers;
 import com.dapm.security_service.models.dtos2.GetPeerRequest;
+import com.dapm.security_service.models.enums.PeType;
 import com.dapm.security_service.models.enums.Tier;
 import com.dapm.security_service.repositories.ProcessingElementRepository;
 import com.dapm.security_service.repositories.PublisherOrganizationRepository;
@@ -18,7 +19,7 @@ import java.nio.file.*;
 import java.util.*;
 
 @RestController
-@RequestMapping("/externalPeerConfigs")
+@RequestMapping("/api/external-peer-configs")
 public class RequestPEConfigFromPeersController {
 
     @Value("${runtime.configs.root:/runtime-configs}")
@@ -102,8 +103,9 @@ public class RequestPEConfigFromPeersController {
                             .instanceNumber(0)
                             .inputs(item.inputs)
                             .output(item.output)
+                            .configSchema(item.schema)
+                            .processingElementType(item.processingElementType)
                             .hostURL("http://"+org.getName().toLowerCase()+":8080")
-                            .riskLevel(item.riskLevel)
                             .build();
 
             processingElementRepository.save(peB);
@@ -132,6 +134,6 @@ public class RequestPEConfigFromPeersController {
         public Tier tier;
         public Set<String> inputs;
         public String output;
-        public String riskLevel;
+        public PeType processingElementType;
     }
 }

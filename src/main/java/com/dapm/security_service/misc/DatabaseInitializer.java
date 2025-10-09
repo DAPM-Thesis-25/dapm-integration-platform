@@ -21,8 +21,6 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     // Repositories
     @Autowired private OrganizationRepository organizationRepository;
-    @Autowired private PermissionRepository permissionRepository;
-    @Autowired private RoleRepository roleRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private OrgRoleRepository orgRoleRepository;
     @Autowired private PipelineRepositoryy pipelineRepository;
@@ -126,75 +124,6 @@ public class DatabaseInitializer implements CommandLineRunner {
                                 .build()
                 ));
 
-
-        // 4. Define Permissions.
-        Map<String, Permission> permissionMap = new HashMap<>();
-        permissionMap.put("APPROVE_ACCESS", createPermissionIfNotExistStatic("APPROVE_ACCESS", "Approve access requests", PERM_APPROVE_ACCESS_ID));
-        permissionMap.put("SET_LIMITS", createPermissionIfNotExistStatic("SET_LIMITS", "Set resource usage limits", PERM_SET_LIMITS_ID));
-        permissionMap.put("READ_PIPELINE", createPermissionIfNotExistStatic("READ_PIPELINE", "Read pipeline details", PERM_READ_PIPELINE_ID));
-        permissionMap.put("EXECUTE_PIPELINE", createPermissionIfNotExistStatic("EXECUTE_PIPELINE", "Execute pipeline", PERM_EXECUTE_PIPELINE_ID));
-        permissionMap.put("REQUEST_ACCESS", createPermissionIfNotExistStatic("REQUEST_ACCESS", "Request access", PERM_REQUEST_ACCESS_ID));
-        permissionMap.put("CONFIGURE_CROSS_ORG_TRUST", createPermissionIfNotExistStatic("CONFIGURE_CROSS_ORG_TRUST", "Configure cross organization trust policies", PERM_CONFIGURE_CROSS_ORG_TRUST_ID));
-        permissionMap.put("EXCHANGE_PUBLIC_KEYS", createPermissionIfNotExistStatic("EXCHANGE_PUBLIC_KEYS", "Exchange public keys", PERM_EXCHANGE_PUBLIC_KEYS_ID));
-        permissionMap.put("ROLE_MANAGEMENT", createPermissionIfNotExistStatic("ROLE_MANAGEMENT", "Manage roles", PERM_ROLE_MANAGEMENT_ID));
-        permissionMap.put("CREATE_PIPELINE", createPermissionIfNotExistStatic("CREATE_PIPELINE", "Create new pipeline", PERM_CREATE_PIPELINE_ID));
-        permissionMap.put("UPLOAD_RESOURCE", createPermissionIfNotExistStatic("UPLOAD_RESOURCE", "Upload resource", PERM_UPLOAD_RESOURCE_ID));
-        permissionMap.put("DELETE_RESOURCE", createPermissionIfNotExistStatic("DELETE_RESOURCE", "Delete resource", PERM_DELETE_RESOURCE_ID));
-        permissionMap.put("READ_RESOURCE", createPermissionIfNotExistStatic("READ_RESOURCE", "Read resource", PERM_READ_RESOURCE_ID));
-        permissionMap.put("EDIT_RESOURCE", createPermissionIfNotExistStatic("EDIT_RESOURCE", "Edit resource", PERM_EDIT_RESOURCE_ID));
-        permissionMap.put("DOWNLOAD_RESOURCE", createPermissionIfNotExistStatic("DOWNLOAD_RESOURCE", "Download resource", PERM_DOWNLOAD_RESOURCE_ID));
-        permissionMap.put("ACCESS_RESOURCE", createPermissionIfNotExistStatic("ACCESS_RESOURCE", "Access resource", PERM_ACCESS_RESOURCE_ID));
-        permissionMap.put("MODIFY_RESOURCE", createPermissionIfNotExistStatic("MODIFY_RESOURCE", "Modify resource", PERM_MODIFY_RESOURCE_ID));
-
-        // 5. Create Roles for OrgA.
-        Set<Permission> adminPerms = new HashSet<>(Arrays.asList(
-                permissionMap.get("APPROVE_ACCESS"),
-                permissionMap.get("SET_LIMITS"),
-                permissionMap.get("READ_PIPELINE"),
-                permissionMap.get("EXECUTE_PIPELINE"),
-                permissionMap.get("REQUEST_ACCESS"),
-                permissionMap.get("CREATE_PIPELINE"),
-                permissionMap.get("UPLOAD_RESOURCE"),
-                permissionMap.get("DELETE_RESOURCE"),
-                permissionMap.get("READ_RESOURCE"),
-                permissionMap.get("EDIT_RESOURCE"),
-                permissionMap.get("DOWNLOAD_RESOURCE"),
-                permissionMap.get("CONFIGURE_CROSS_ORG_TRUST"),
-                permissionMap.get("EXCHANGE_PUBLIC_KEYS"),
-                permissionMap.get("ROLE_MANAGEMENT")
-        ));
-        Role adminRole = createRoleIfNotExistStatic("ADMIN", org, adminPerms, ROLE_ADMIN_ID);
-
-        Set<Permission> depHeadPerms = new HashSet<>(Arrays.asList(
-                permissionMap.get("APPROVE_ACCESS"),
-                permissionMap.get("SET_LIMITS"),
-                permissionMap.get("READ_PIPELINE"),
-                permissionMap.get("EXECUTE_PIPELINE"),
-                permissionMap.get("REQUEST_ACCESS")
-        ));
-        Role depHeadRole = createRoleIfNotExistStatic("DEPARTMENT_HEAD", org, depHeadPerms, ROLE_DEPHEAD_ID);
-
-        Set<Permission> researcherPerms = new HashSet<>(Arrays.asList(
-                permissionMap.get("REQUEST_ACCESS"),
-                permissionMap.get("EXECUTE_PIPELINE"),
-                permissionMap.get("READ_PIPELINE"),
-                permissionMap.get("CREATE_PIPELINE"),
-                permissionMap.get("UPLOAD_RESOURCE"),
-                permissionMap.get("DELETE_RESOURCE"),
-                permissionMap.get("READ_RESOURCE"),
-                permissionMap.get("EDIT_RESOURCE"),
-                permissionMap.get("DOWNLOAD_RESOURCE")
-        ));
-        Role researcherRole = createRoleIfNotExistStatic("RESEARCHER", org, researcherPerms, ROLE_RESEARCHER_ID);
-
-        Set<Permission> pipelinePerms = new HashSet<>(Arrays.asList(
-                permissionMap.get("READ_RESOURCE"),
-                permissionMap.get("ACCESS_RESOURCE"),
-                permissionMap.get("MODIFY_RESOURCE"),
-                permissionMap.get("DELETE_RESOURCE")
-        ));
-        Role pipelineRole = createRoleIfNotExistStatic("PIPELINE_ROLE", org, pipelinePerms, ROLE_PIPELINE_ID);
-
         // Hey there I am new
         // Create Org Roles for OrgA.
         OrgRole AdminOrgRole = createOrgRoleIfNotExistStatic("ADMIN", org, ADMIN_ID);
@@ -214,14 +143,13 @@ public class DatabaseInitializer implements CommandLineRunner {
         OrgPermission orgPermission10 = createOrgPermissionIfNotExistStatic(OrgPermAction.ASSIGN_USER_ROLE, AdminOrgRole, UUID.randomUUID());
         OrgPermission orgPermission12 = createOrgPermissionIfNotExistStatic(OrgPermAction.DELETE_ROLE, AdminOrgRole, UUID.randomUUID());
         OrgPermission orgPermission13 = createOrgPermissionIfNotExistStatic(OrgPermAction.APPROVE_REQUEST_PE, AdminOrgRole, UUID.randomUUID());
-        //OrgPermission orgPermission14 = createOrgPermissionIfNotExistStatic(OrgPermAction.me, AdminOrgRole, UUID.randomUUID());
 
         // 6. Create Users for OrgA.
-        createUserIfNotExistStatic("anna", "anna@example.com", "dapm", adminRole, AdminOrgRole,org, USER_ANNA_ID);
-        createUserIfNotExistStatic("charlie","charlie@gmail.com", "dapm", adminRole, AdminOrgRole, org, UUID.fromString("11111111-1111-1111-1111-111111111116"));
-        createUserIfNotExistStatic("anthoni", "anthoni@example.com", "dapm", depHeadRole,AdminOrgRole, org, USER_ANTHONI_ID);
-        createUserIfNotExistStatic("alice", "alice@example.com", "dapm", researcherRole,defaultOrgRole, org,  USER_ALICE_ID);
-        createUserIfNotExistStatic("ashley", "ashley@example.com", "dapm", researcherRole,defaultOrgRole, org,  USER_ASHLEY_ID);
+        createUserIfNotExistStatic("anna", "anna@example.com", "dapm", AdminOrgRole,org, USER_ANNA_ID);
+        createUserIfNotExistStatic("charlie","charlie@gmail.com", "dapm", AdminOrgRole, org, UUID.fromString("11111111-1111-1111-1111-111111111116"));
+        createUserIfNotExistStatic("anthoni", "anthoni@example.com", "dapm",AdminOrgRole, org, USER_ANTHONI_ID);
+        createUserIfNotExistStatic("alice", "alice@example.com", "dapm",defaultOrgRole, org,  USER_ALICE_ID);
+        createUserIfNotExistStatic("ashley", "ashley@example.com", "dapm",defaultOrgRole, org,  USER_ASHLEY_ID);
 
 
 
@@ -229,8 +157,13 @@ public class DatabaseInitializer implements CommandLineRunner {
         // Create roles on project level
         ProjectRole projectRole1 = createProjectRoleIfNotExistStatic("researcher",RESEARCHER_ID);
         ProjectRole projectRole2 = createProjectRoleIfNotExistStatic("leader",LEADER_ID);
+
+        //create a set of project roles of projectRole1 and projectRole2
+        Set<ProjectRole> projectRolesSet = new HashSet<>();
+        projectRolesSet.add(projectRole1);
+        projectRolesSet.add(projectRole2);
         // Hey there I am new
-        Project p=createProjectIfNotExistStatic("dapm",org,PROJECT1_ID);
+        Project p=createProjectIfNotExistStatic("HospitalFlow",org,projectRolesSet,PROJECT1_ID);
 
 
 
@@ -238,15 +171,17 @@ public class DatabaseInitializer implements CommandLineRunner {
         // create a project permission
         ProjectPermission projectPermission1=createProjectPermissionIfNotExistStatic(ProjectPermAction.READ_PE, UUID.randomUUID());
         ProjectPermission projectPermission2=createProjectPermissionIfNotExistStatic(ProjectPermAction.ACCESS_REQUEST_PE,UUID.randomUUID());
-        ProjectPermission projectPermission3=createProjectPermissionIfNotExistStatic(ProjectPermAction.INSTANTIATE_PE, UUID.randomUUID());
-        ProjectPermission projectPermission4=createProjectPermissionIfNotExistStatic(ProjectPermAction.INSTANTIATE_PIPELINE,UUID.randomUUID());
+        ProjectPermission projectPermission3=createProjectPermissionIfNotExistStatic(ProjectPermAction.BUILD_PIPELINE, UUID.randomUUID());
+        ProjectPermission projectPermission4=createProjectPermissionIfNotExistStatic(ProjectPermAction.EXECUTE_PIPELINE,UUID.randomUUID());
         ProjectPermission projectPermission5=createProjectPermissionIfNotExistStatic(ProjectPermAction.CONFIGURE_PIPELINE,UUID.randomUUID());
-        ProjectPermission projectPermission6=createProjectPermissionIfNotExistStatic(ProjectPermAction.START_PIPELINE,UUID.randomUUID());
-        ProjectPermission projectPermission7=createProjectPermissionIfNotExistStatic(ProjectPermAction.READ_PES, UUID.randomUUID());
-        ProjectPermission projectPermission8=createProjectPermissionIfNotExistStatic(ProjectPermAction.UPDATE_PROJECT,UUID.randomUUID());
-        ProjectPermission projectPermission9=createProjectPermissionIfNotExistStatic(ProjectPermAction.ASSIGN_USER_PROJECT_ROLE,UUID.randomUUID());
-        ProjectPermission projectPermission10=createProjectPermissionIfNotExistStatic(ProjectPermAction.CREATE_PIPELINE,UUID.randomUUID());
-
+        ProjectPermission projectPermission6=createProjectPermissionIfNotExistStatic(ProjectPermAction.TERMINATE_PIPELINE,UUID.randomUUID());
+        //ProjectPermission projectPermission7=createProjectPermissionIfNotExistStatic(ProjectPermAction.READ_PES, UUID.randomUUID());
+        ProjectPermission projectPermission7=createProjectPermissionIfNotExistStatic(ProjectPermAction.UPDATE_PROJECT,UUID.randomUUID());
+        ProjectPermission projectPermission8=createProjectPermissionIfNotExistStatic(ProjectPermAction.ASSIGN_USER_PROJECT_ROLE,UUID.randomUUID());
+        ProjectPermission projectPermission9=createProjectPermissionIfNotExistStatic(ProjectPermAction.CREATE_PIPELINE,UUID.randomUUID());
+        ProjectPermission projectPermission10=createProjectPermissionIfNotExistStatic(ProjectPermAction.VALIDATE_PIPELINE,UUID.randomUUID());
+        ProjectPermission projectPermission11=createProjectPermissionIfNotExistStatic(ProjectPermAction.CREATE_PIPELINE,UUID.randomUUID());
+        //ProjectPermission projectPermission13=createProjectPermissionIfNotExistStatic(ProjectPermAction.CREATE_PIPELINE,UUID.randomUUID());
 
 
 
@@ -258,16 +193,35 @@ public class DatabaseInitializer implements CommandLineRunner {
 
 
         ProjectRolePermission projectRolePermission=createProjectRolePermissionIfNotExistStatic(p,projectPermission1,projectRole2);
-        ProjectRolePermission projectRolePermission2=createProjectRolePermissionIfNotExistStatic(p,projectPermission8,projectRole2);
-        ProjectRolePermission projectRolePermission3=createProjectRolePermissionIfNotExistStatic(p,projectPermission5,projectRole2);
-        ProjectRolePermission projectRolePermission4=createProjectRolePermissionIfNotExistStatic(p,projectPermission2,projectRole2);
-        ProjectRolePermission projectRolePermission5=createProjectRolePermissionIfNotExistStatic(p,projectPermission9,projectRole2);
-        ProjectRolePermission projectRolePermission6=createProjectRolePermissionIfNotExistStatic(p,projectPermission10,projectRole2);
+        ProjectRolePermission projectRolePermission2=createProjectRolePermissionIfNotExistStatic(p,projectPermission2,projectRole2);
+        ProjectRolePermission projectRolePermission3=createProjectRolePermissionIfNotExistStatic(p,projectPermission3,projectRole2);
+        ProjectRolePermission projectRolePermission4=createProjectRolePermissionIfNotExistStatic(p,projectPermission4,projectRole2);
+        ProjectRolePermission projectRolePermission5=createProjectRolePermissionIfNotExistStatic(p,projectPermission5,projectRole2);
+        ProjectRolePermission projectRolePermission6=createProjectRolePermissionIfNotExistStatic(p,projectPermission6,projectRole2);
+        ProjectRolePermission projectRolePermission7=createProjectRolePermissionIfNotExistStatic(p,projectPermission7,projectRole2);
+        ProjectRolePermission projectRolePermission8=createProjectRolePermissionIfNotExistStatic(p,projectPermission8,projectRole2);
+        ProjectRolePermission projectRolePermission9=createProjectRolePermissionIfNotExistStatic(p,projectPermission9,projectRole2);
+        ProjectRolePermission projectRolePermission10=createProjectRolePermissionIfNotExistStatic(p,projectPermission10,projectRole2);
+        ProjectRolePermission projectRolePermission11=createProjectRolePermissionIfNotExistStatic(p,projectPermission11,projectRole2);
+
+        ProjectRolePermission projectRolePermission12=createProjectRolePermissionIfNotExistStatic(p,projectPermission1,projectRole1);
+//        ProjectRolePermission projectRolePermission13=createProjectRolePermissionIfNotExistStatic(p,projectPermission2,projectRole1);
+        ProjectRolePermission projectRolePermission113=createProjectRolePermissionIfNotExistStatic(p,projectPermission3,projectRole1);
+        ProjectRolePermission projectRolePermission14=createProjectRolePermissionIfNotExistStatic(p,projectPermission4,projectRole1);
+//        ProjectRolePermission projectRolePermission15=createProjectRolePermissionIfNotExistStatic(p,projectPermission5,projectRole1);
+        ProjectRolePermission projectRolePermission16=createProjectRolePermissionIfNotExistStatic(p,projectPermission6,projectRole1);
+        ProjectRolePermission projectRolePermission17=createProjectRolePermissionIfNotExistStatic(p,projectPermission7,projectRole1);
+//        ProjectRolePermission projectRolePermission18=createProjectRolePermissionIfNotExistStatic(p,projectPermission8,projectRole1);
+        ProjectRolePermission projectRolePermission19=createProjectRolePermissionIfNotExistStatic(p,projectPermission9,projectRole1);
+        ProjectRolePermission projectRolePermission110=createProjectRolePermissionIfNotExistStatic(p,projectPermission10,projectRole1);
+        ProjectRolePermission projectRolePermission111=createProjectRolePermissionIfNotExistStatic(p,projectPermission11,projectRole1);
+
 
         User user = userRepository.findByUsername("anna")
                 .orElseThrow(() -> new RuntimeException("User 'anna' not found"));
 
         UserRoleAssignment userRoleAssignment = createUserRoleAssignmentIfNotExist(user, p, projectRole2);
+
 
 
         Voucher voucher1=createVoucherIfNotExistStatic("BASIC-2025-ORG",false, SubscriptionTier.BASIC);
@@ -286,18 +240,7 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     // --- Helper Methods ---
 
-    private Permission createPermissionIfNotExistStatic(String name, String description, UUID id) {
-        Permission permission = permissionRepository.findByName(name);
-        if (permission == null) {
-            permission = Permission.builder()
-                    .id(id)
-                    .name(name)
-                    .description(description)
-                    .build();
-            permission = permissionRepository.save(permission);
-        }
-        return permission;
-    }
+
     // create a createVoucherIfNotExistStatic method
     private Voucher createVoucherIfNotExistStatic(String code, boolean redeemed, SubscriptionTier subscriptionTier) {
         Voucher voucher = voucherRepository.findByCode(code).orElse(null);
@@ -312,21 +255,8 @@ public class DatabaseInitializer implements CommandLineRunner {
         return voucher;
     }
 
-    private Role createRoleIfNotExistStatic(String name, Organization organization, Set<Permission> permissions, UUID id) {
-        Role role = roleRepository.findByName(name);
-        if (role == null) {
-            role = Role.builder()
-                    .id(id)
-                    .name(name)
-                    .organization(organization)
-                    .permissions(permissions)
-                    .build();
-            role = roleRepository.save(role);
-        }
-        return role;
-    }
 
-    private void createUserIfNotExistStatic(String username, String email, String rawPassword, Role role, OrgRole orgRole,
+    private void createUserIfNotExistStatic(String username, String email, String rawPassword, OrgRole orgRole,
                                             Organization organization, UUID id) {
         userRepository.findByUsername(username).orElseGet(() -> {
             String passwordHash = passwordEncoder.encode(rawPassword);
@@ -369,21 +299,27 @@ public class DatabaseInitializer implements CommandLineRunner {
         return orgRole;
     }
 
-    private Project createProjectIfNotExistStatic(String name, Organization organization, UUID id) {
+    private Project createProjectIfNotExistStatic(String name, Organization organization, Set<ProjectRole> projectRolesSet, UUID id) {
         Optional<Project> optionalProject = projectRepository.findByName(name);
         Project p;
         if (optionalProject.isPresent()) {
             p = optionalProject.get();
+            if (p.getProjectRoles() == null || p.getProjectRoles().isEmpty()) {
+                p.setProjectRoles(projectRolesSet);   // <-- ensure roles are assigned
+                p = projectRepository.save(p);
+            }
         } else {
             p = Project.builder()
                     .id(id)
                     .name(name)
                     .organization(organization)
+                    .projectRoles(projectRolesSet)
                     .build();
             p = projectRepository.save(p);
         }
         return p;
     }
+
 
     private ProjectRole createProjectRoleIfNotExistStatic(String name, UUID id) {
         ProjectRole proRole = projectsRolesRepository.findByName(name);

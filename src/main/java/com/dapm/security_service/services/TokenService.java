@@ -128,8 +128,8 @@ public class TokenService {
         claims.put("instanceNumber", request.getInstanceNumber());
 
         // token expiry: short-lived (e.g. 15 minutes)
-//        Instant tokenExpiry = now.plusSeconds(15 * 60L);
-        Instant tokenExpiry = now.plusSeconds(60);
+        Instant tokenExpiry = now.plusSeconds(15 * 60L);
+//        Instant tokenExpiry = now.plusSeconds(60);
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -143,5 +143,27 @@ public class TokenService {
                 .setHeaderParam("kid", kidValue)
                 .compact();
     }
+
+    /**
+     * Wraps an existing token inside a new signed JWT.
+     */
+    public String signExistingToken(String innerToken, long ttlSeconds) {
+        Instant now = Instant.now();
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("token", innerToken); // include the original token as a claim
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject("wrapped-token")       // subject indicates it's a wrapper
+                .setIssuer(orgId)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plusSeconds(ttlSeconds)))
+                .setId(UUID.randomUUID().toString()) // jti
+                .signWith(signingKeyPair.getPrivate(), SignatureAlgorithm.RS256)
+                .setHeaderParam("kid", kidValue)
+                .compact();
+    }
+
 
 }

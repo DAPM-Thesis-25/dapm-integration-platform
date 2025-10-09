@@ -8,10 +8,7 @@ import org.springframework.stereotype.Service;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -21,7 +18,9 @@ public class TokenVerificationService {
 
     private final PublicKey publicKey;
     private final Set<String> usedJtis = Collections.synchronizedSet(new HashSet<>());
-    private final Map<String, Instant> revokedJtis = new ConcurrentHashMap<>();
+    private final Set<String> revokedJtis = Collections.synchronizedSet(new HashSet<>());
+
+//    private final Map<String, Instant> revokedJtis = new ConcurrentHashMap<>();
 
 
 
@@ -98,24 +97,80 @@ public class TokenVerificationService {
      * Verify a JWT that was issued by *this service* (using local key).
      */
     public Claims verifyAndExtractClaims(String token) {
-        try {
+
+            String token2 =verifyTokenAndGetTokenClaim(token);
+
+            // throw if
+        if (token2 == null || token2.isBlank()) {
+            throw new RuntimeException("Token verification failed");
+        }
             Jws<Claims> jws = Jwts.parserBuilder()
                     .setSigningKey(publicKey)
                     .build()
-                    .parseClaimsJws(token);
+                    .parseClaimsJws(token2);
 
             Claims claims = jws.getBody();
+            String jti = claims.getId();
+
+            // check if jti is revoked
+            if (jti != null && revokedJtis.contains(jti)) {
+                throw new RuntimeException("Token has been revoked");
+            }
 
             // Enforce single-use via jti
-            String jti = claims.getId();
             if (jti == null || usedJtis.contains(jti)) {
                 throw new RuntimeException("Replay detected or missing jti");
             }
             usedJtis.add(jti);
 
             return claims;
+    }
+
+    public String verifyTokenAndGetTokenClaim(String token) {
+        try {
+            // 1. Extract org + kid from token (without verifying)
+            String orgId = PublicKeysService.extractIssuerFromToken(token);
+            String kid   = PublicKeysService.extractKidFromToken(token);
+
+            if (orgId == null || orgId.isBlank()) {
+                throw new RuntimeException("Missing 'iss' claim in token");
+            }
+
+            // 2. Fetch the public key dynamically from JWKS
+            PublicKey key = publicKeysService.getKeyForOrg(orgId, kid);
+
+            System.out.println("Verifying token for org " + orgId + " with key " + key);
+
+            // 3. Parse & verify token with the correct key
+            Jws<Claims> jws = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+
+            // 4. Extract the "token" claim
+            Claims claims = jws.getBody();
+            String tokenClaim = claims.get("token", String.class);
+
+            if (tokenClaim == null || tokenClaim.isBlank()) {
+                throw new RuntimeException("Missing 'token' claim in JWT");
+            }
+
+            return tokenClaim;
+
         } catch (Exception e) {
             throw new RuntimeException("Token verification failed", e);
         }
+    }
+
+
+    public void revokeJti(String token) {
+        Jws<Claims> jws = Jwts.parserBuilder()
+                .setSigningKey(publicKey)
+                .build()
+                .parseClaimsJws(token);
+
+        Claims claims = jws.getBody();
+        String jti = claims.getId();
+        revokedJtis.add(jti);
     }
 }

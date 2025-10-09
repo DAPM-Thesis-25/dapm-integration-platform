@@ -27,6 +27,22 @@ public class UserRoleAssigmnetController {
     @Autowired
     private UserRoleAssignmentRepository userRoleAssignmentRepository;
 
+    // get all assignments by project
+    @GetMapping
+//    @PreAuthorize("hasAuthority('READ_USER_ROLES') or hasAuthority('READ_USER_PROJECT_ROLES:' + #projectName)")
+    public ResponseEntity<?> getAllAssignmentsByProject(@RequestParam String projectName) {
+        Optional<Project> projectOpt = projectRepository.findByName(projectName);
+        if (projectOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("Project not found");
+        }
+        Project project = projectOpt.get();
+        var assignments = userRoleAssignmentRepository.findByProject(project)
+                .stream()
+                .map(UserRoleAssigmnetController::toDto)
+                .toList();
+        return ResponseEntity.ok(assignments);
+    }
+
 
 
     @PostMapping("/assign")
@@ -61,7 +77,12 @@ public class UserRoleAssigmnetController {
                 .findByUserAndProject(user, project);
 
         if (existingAssignment.isPresent()) {
-            return ResponseEntity.ok(toDto(existingAssignment.get()));
+            // Force init before mapping to DTO
+            UserRoleAssignment ea = existingAssignment.get();
+            ea.getUser().getUsername();
+            ea.getProject().getName();
+            ea.getRole().getName();
+            return ResponseEntity.ok(toDto(ea));
         }
 
         UserRoleAssignment assignment = UserRoleAssignment.builder()
@@ -69,13 +90,18 @@ public class UserRoleAssigmnetController {
                 .project(project)
                 .role(role)
                 .build();
-        System.out.println(assignment + " weeeee");
 
-        userRoleAssignmentRepository.save(assignment);
+        UserRoleAssignment saved = userRoleAssignmentRepository.save(assignment);
 
-        return ResponseEntity.ok(toDto(assignment));
+        // 👇 Force initialization here
+        saved.getUser().getUsername();
+        saved.getProject().getName();
+        saved.getRole().getName();
 
+        return ResponseEntity.ok(toDto(saved));
     }
+
+
 
     public static AssignUserRoleDto toDto(UserRoleAssignment assignment) {
         return new AssignUserRoleDto(

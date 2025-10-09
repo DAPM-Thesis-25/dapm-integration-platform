@@ -1,7 +1,6 @@
 package com.dapm.security_service.config;
 
 import com.dapm.security_service.models.User;
-import com.dapm.security_service.models.Role;
 import com.dapm.security_service.models.UserRoleAssignment;
 import com.dapm.security_service.repositories.UserRoleAssignmentRepository;
 import io.jsonwebtoken.Claims;
@@ -36,15 +35,15 @@ public class JwtService {
     }
 
     public String generateToken(
-        Map<String, Object> extraClaims,
-                UserDetails userDetails
-    ){
-        return  Jwts
+            Map<String, Object> extraClaims,
+            UserDetails userDetails
+    ) {
+        return Jwts
                 .builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis()+ 1000*60*24))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 2)) // 2 hours
                 .signWith(getSingInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

@@ -18,7 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.Instant;
 
 @RestController
-@RequestMapping("/upgrade-subscription")
+@RequestMapping("/api/upgrade-subscription")
 public class UpgradeSubscriptionController {
 
     @Autowired private TokenService tokenService;

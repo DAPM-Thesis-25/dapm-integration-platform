@@ -1,19 +1,19 @@
 package com.dapm.security_service.controllers.ClientApi;
-import com.dapm.security_service.models.Organization;
-import com.dapm.security_service.models.Project;
-import com.dapm.security_service.models.ProjectRole;
+import com.dapm.security_service.models.*;
 import com.dapm.security_service.models.dtos.*;
-import com.dapm.security_service.repositories.OrganizationRepository;
-import com.dapm.security_service.repositories.ProjectRepository;
-import com.dapm.security_service.repositories.ProjectsRolesRepository;
+import com.dapm.security_service.models.dtos2.CustomizedRoleAndPermissionsDto;
+import com.dapm.security_service.models.enums.ProjectPermAction;
+import com.dapm.security_service.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import com.dapm.security_service.security.CustomUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -27,8 +27,17 @@ public class ProjectController {
     @Autowired
     private ProjectsRolesRepository projectsRolesRepository;
 
+    @Autowired
+    private UserRoleAssignmentRepository userRoleAssignmentRepository;
+    @Autowired
+    private ProjectRepository projectsRepository;
+    @Autowired
+    private  ProjPermissionRepository projPermissionRepository;
+    @Autowired
+    private ProjectRolePermissionRepository projectRolePermissionRepository;
+
     @PreAuthorize("hasAuthority('READ_PROJECT')")
-    @GetMapping
+    @GetMapping("/all")
     public List<ProjectDto> getAllProjects() {
         return projectRepository.findAll()
                 .stream()
@@ -42,6 +51,7 @@ public class ProjectController {
                 .map(project -> ResponseEntity.ok(new ProjectDto(project)))
                 .orElse(ResponseEntity.notFound().build());
     }
+
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('CREATE_PROJECT')")
     public ResponseEntity<ProjectDto> createProject(
@@ -56,11 +66,78 @@ public class ProjectController {
         project.setId( UUID.randomUUID());
         project.setName(request.getName());
         Organization organization = userDetails.getUser().getOrganization();
-        System.out.println("mra7ib");
-
         project.setOrganization(organization);
 
+
+
+        Set<ProjectPermAction> leaderActions = Set.of(
+                ProjectPermAction.CONFIGURE_PIPELINE,
+                ProjectPermAction.UPDATE_PROJECT,
+                ProjectPermAction.ASSIGN_USER_PROJECT_ROLE,
+                ProjectPermAction.READ_PES
+                ,ProjectPermAction.CREATE_PIPELINE
+                ,ProjectPermAction.VALIDATE_PIPELINE
+                ,ProjectPermAction.BUILD_PIPELINE
+                ,ProjectPermAction.EXECUTE_PIPELINE
+                ,ProjectPermAction.TERMINATE_PIPELINE
+                ,ProjectPermAction.ACCESS_REQUEST_PE
+                ,ProjectPermAction.READ_PE
+        );
+        Set<ProjectPermAction> researcherActions = Set.of(
+//                ProjectPermAction.UPDATE_PROJECT,
+                ProjectPermAction.READ_PES
+                ,ProjectPermAction.CREATE_PIPELINE
+                ,ProjectPermAction.VALIDATE_PIPELINE
+                ,ProjectPermAction.BUILD_PIPELINE
+                ,ProjectPermAction.EXECUTE_PIPELINE
+                ,ProjectPermAction.TERMINATE_PIPELINE
+//                ,ProjectPermAction.ACCESS_REQUEST_PE
+                ,ProjectPermAction.READ_PE
+        );
+        ProjectRole roleLeader=projectsRolesRepository.findByName("leader");
+        ProjectRole roleResearcher=projectsRolesRepository.findByName("researcher");
+        project.getProjectRoles().add(roleResearcher);
+        project.getProjectRoles().add(roleLeader);
         Project created =projectRepository.save(project);
+        for (ProjectPermAction action : leaderActions) {
+            ProjectPermission projectPermission=projPermissionRepository.findByAction(action);
+            if (projectPermission == null) {
+                continue;
+            }
+            var existing = projectRolePermissionRepository.findByProjectAndPermissionAndRole(project, projectPermission, roleLeader);
+            if (existing.isPresent()) {
+                continue;
+            }
+            var newMapping = ProjectRolePermission.builder()
+                    .id(UUID.randomUUID())
+                    .project(project)
+                    .role(roleLeader)
+                    .permission(projectPermission)
+                    .build();
+            newMapping = projectRolePermissionRepository.save(newMapping);
+        }
+
+        for (ProjectPermAction action : researcherActions) {
+            ProjectPermission projectPermission=projPermissionRepository.findByAction(action);
+            if (projectPermission == null) {
+                continue;
+            }
+            var existing = projectRolePermissionRepository.findByProjectAndPermissionAndRole(project, projectPermission, roleResearcher);
+            if (existing.isPresent()) {
+                continue;
+            }
+            var newMapping = ProjectRolePermission.builder()
+                    .id(UUID.randomUUID())
+                    .project(project)
+                    .role(roleResearcher)
+                    .permission(projectPermission)
+                    .build();
+            newMapping = projectRolePermissionRepository.save(newMapping);
+        }
+
+
+
+
         return ResponseEntity.ok(new ProjectDto(created));
     }
 
@@ -68,10 +145,17 @@ public class ProjectController {
     @PutMapping("/{name}/assign-role")
     public ResponseEntity<ProjectDto> assignRoleToProject(@PathVariable String name, @RequestBody ProjectRolesAssignmentDto projectRolesAssignmentDto) {
         Project project= projectRepository.findByName(name).orElse(null);
-        ProjectRole projectRole=projectsRolesRepository.findByName(projectRolesAssignmentDto.getRole());
 
-        project.getProjectRoles().add(projectRole);
-
+        if (project == null) {
+            return ResponseEntity.notFound().build();
+        }
+        // iterate over roles in dto and add them to project
+        for (String roleName : projectRolesAssignmentDto.getRoles()) {
+            ProjectRole projectRole=projectsRolesRepository.findByName(roleName);
+            if (projectRole != null) {
+                project.getProjectRoles().add(projectRole);
+            }
+        }
         Project updated =projectRepository.save(project);
         return ResponseEntity.ok(new ProjectDto(updated));
     }
@@ -96,6 +180,70 @@ public class ProjectController {
         project.setName(request.getName());
         Project updated = projectRepository.save(project);
         return ResponseEntity.ok(new ProjectDto(updated));
+    }
+    @Transactional(readOnly = true)
+    @GetMapping("/my-projects")
+    public ResponseEntity<List<ProjectDto>> getMyProjects(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        User user = userDetails.getUser();
+
+        List<ProjectDto> myProjects = userRoleAssignmentRepository.findByUser(user).stream()
+                .map(UserRoleAssignment::getProject) // get project from assignment
+                .map(ProjectDto::new)                // map to DTO
+                .toList();
+
+        return ResponseEntity.ok(myProjects);
+    }
+
+    @GetMapping("/roles")
+    public ResponseEntity<List<ProjectRole>> getAllProjectRoles() {
+        List<ProjectRole> roles = projectsRolesRepository.findAll().stream()
+                .toList();
+        return ResponseEntity.ok(roles);
+    }
+
+
+
+    @PostMapping("assign-roles-and-permissions")
+    public ResponseEntity<ProjectDto> addProjectRole(@RequestBody CustomizedRoleAndPermissionsDto projectRole) {
+        Project project= projectsRepository.findByName(projectRole.getProjectName()).orElse(null);
+        if (project == null) {
+            return ResponseEntity.notFound().build();
+        }
+        ProjectRole existingRole = projectsRolesRepository.findByName(projectRole.getRoleName());
+        if (existingRole == null) {
+            existingRole = new ProjectRole();
+            existingRole.setId(UUID.randomUUID());
+            existingRole.setName(projectRole.getRoleName());
+            existingRole = projectsRolesRepository.save(existingRole);
+        }
+        project.getProjectRoles().add(existingRole);
+        projectsRepository.save(project);
+
+        for (ProjectPermAction action : projectRole.getPermissions()) {
+            ProjectPermission projectPermission=projPermissionRepository.findByAction(action);
+            if (projectPermission == null) {
+                continue;
+            }
+            var existing = projectRolePermissionRepository.findByProjectAndPermissionAndRole(project, projectPermission, existingRole);
+            if (existing.isPresent()) {
+                continue;
+            }
+            var newMapping = ProjectRolePermission.builder()
+                    .id(UUID.randomUUID())
+                    .project(project)
+                    .role(existingRole)
+                    .permission(projectPermission)
+                    .build();
+            newMapping = projectRolePermissionRepository.save(newMapping);
+        }
+
+        return ResponseEntity.ok(new ProjectDto(project));
+
+
+
+
     }
 
 

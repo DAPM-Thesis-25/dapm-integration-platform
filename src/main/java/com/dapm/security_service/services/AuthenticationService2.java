@@ -1,8 +1,11 @@
 package com.dapm.security_service.services;
 
 import com.dapm.security_service.config.JwtService;
+import com.dapm.security_service.exceptions.DuplicateFieldException;
 import com.dapm.security_service.security.CustomUserDetails;
 import jakarta.transaction.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.dapm.security_service.models.*;
 import com.dapm.security_service.models.dtos.AuthRequest;
@@ -37,6 +40,7 @@ public class AuthenticationService2 {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+
     @Transactional
     public void register(CreateUserDto user, CustomUserDetails userDetails) {
         User newUser = new User();
@@ -54,8 +58,20 @@ public class AuthenticationService2 {
         }
 
         newUser.setOrgRole(orgRole);
-        repository.save(newUser);
+
+        try {
+            repository.save(newUser);
+        } catch (DataIntegrityViolationException ex) {
+            // Postgres unique constraint violation
+            if (ex.getMessage().contains("email")) {
+                throw new DuplicateFieldException("email", "Email already exists");
+            } else if (ex.getMessage().contains("username")) {
+                throw new DuplicateFieldException("username", "Username already exists");
+            }
+            throw ex; // rethrow for unexpected errors
+        }
     }
+
 
     public AuthResponse authenticate(AuthRequest request) {
         authenticationManager.authenticate(

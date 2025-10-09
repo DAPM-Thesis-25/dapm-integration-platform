@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -13,5 +14,5 @@ import java.util.UUID;
 public class AssignProjectRolePermissionDto {
     private String projectName;
     private String roleName;
-    private ProjectPermAction action;
+    private Set<ProjectPermAction> action;
 }

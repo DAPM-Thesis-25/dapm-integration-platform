@@ -43,6 +43,9 @@ public class User implements UserDetails {
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserRoleAssignment> assignments = new HashSet<>();
+
 //    @Column(name = "external", nullable = false)
 //    private boolean external = false;
 //

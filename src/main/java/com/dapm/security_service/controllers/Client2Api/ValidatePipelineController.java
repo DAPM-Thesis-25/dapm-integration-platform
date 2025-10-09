@@ -44,7 +44,7 @@ public class ValidatePipelineController {
     @Autowired private PipelinePeInstanceRepo instanceRepo;
     @Autowired private ProjectRepository projectRepository;
 
-    @PreAuthorize(" hasAuthority('CREATE_PIPELINE:' + #designPipelineDto.getProjectName())")
+    @PreAuthorize(" hasAuthority('VALIDATE_PIPELINE:' + #designPipelineDto.getProjectName())")
     @PostMapping("/design-pipeline")
     public ResponseEntity<?> validatePipeline(
             @RequestBody DesignPipelineDto designPipelineDto
@@ -91,6 +91,11 @@ public class ValidatePipelineController {
                     .orElseThrow(() -> new RuntimeException("Processing element not found with template Id: " + pe.getTemplateID()));
 
             processingElements.add(pee);
+        }
+
+        // print processing elements
+        for (ProcessingElement pe : processingElements) {
+            System.out.println("Processing Element: " + pe.getTemplateId() + " Instance Number: " + pe.getInstanceNumber());
         }
         pipeline.setProcessingElements(processingElements);
 

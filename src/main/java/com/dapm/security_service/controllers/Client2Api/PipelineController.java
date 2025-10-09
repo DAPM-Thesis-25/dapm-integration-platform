@@ -6,6 +6,7 @@ import com.dapm.security_service.models.dtos2.PipelineDto;
 import com.dapm.security_service.repositories.PipelineRepositoryy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +22,14 @@ public class PipelineController {
     @GetMapping("/all")
     public List<PipelineDto> getAllPipelines() {
         return pipelineRepositoryy.findAll()
+                .stream()
+                .map(PipelineDto::new)
+                .toList();
+    }
+    // get all pipelines by project name
+    @GetMapping("/{projectName}")
+    public List<PipelineDto> getAllPipelinesByProjectName(@PathVariable String projectName) {
+        return pipelineRepositoryy.findByProject_Name(projectName)
                 .stream()
                 .map(PipelineDto::new)
                 .toList();

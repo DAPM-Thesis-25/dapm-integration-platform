@@ -29,9 +29,26 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Object> handleDuplicateKey(DataIntegrityViolationException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body("Duplicate or invalid data: " + ex.getRootCause().getMessage());
+    public ResponseEntity<Map<String, String>> handleDuplicateKey(DataIntegrityViolationException ex) {
+        String rootMessage = ex.getRootCause() != null ? ex.getRootCause().getMessage() : "";
+
+        Map<String, String> error = new HashMap<>();
+
+        if (rootMessage.contains("email")) {
+            error.put("field", "email");
+            error.put("message", "Email already exists");
+        } else if (rootMessage.contains("username")) {
+            error.put("field", "username");
+            error.put("message", "Username already exists");
+        } else {
+            error.put("field", "unknown");
+            error.put("message", "Duplicate or invalid data");
+        }
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
+
+
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleAccessDenied(AccessDeniedException ex) {
@@ -39,7 +56,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleGeneralException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + ex.getMessage());
+    public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", ex.getMessage()));
     }
+
 }

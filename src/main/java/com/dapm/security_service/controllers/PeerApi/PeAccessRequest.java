@@ -88,11 +88,11 @@ public  class PeAccessRequest {
         RequestResponse response=new RequestResponse();
         if (orgTier.ordinal() >= requiredTier.ordinal()) {
             if (req.getRequestedDurationHours()<= tier.getMaxHours()) {
-                if(pe.getRiskLevel().equals("HIGH")) {
-                    response.setRequestStatus(AccessRequestStatus.PENDING);
-                    response.setToken("Processing Element has HIGH risk level, so a manual acceptance is needed.");
-                    return response;
-                }
+//                if(pe.getRiskLevel().equals("HIGH")) {
+//                    response.setRequestStatus(AccessRequestStatus.PENDING);
+//                    response.setToken("Processing Element has HIGH risk level, so a manual acceptance is needed.");
+//                    return response;
+//                }
                 response.setRequestStatus(AccessRequestStatus.APPROVED);
                 String token= tokenService.generateApprovalToken(req, req.getRequestedDurationHours());
                 response.setToken(token);
@@ -129,7 +129,7 @@ public  class PeAccessRequest {
             ValidatedPipelineConfig config = validatePipelineRepository.getPipeline(request
                     .getPipelineName());
                 if (config != null) {
-                    config.getExternalPEsTokens().put(request.getProcessingElement().getTemplateId(), requestResponse.getToken());
+                    config.getExternalPEsTokens().put(request.getProcessingElement().getTemplateId(), tokenService.signExistingToken(requestResponse.getToken(),300));
                 } else {
                     throw new IllegalArgumentException("Pipeline not found: " + request.getPipelineName());
                 }

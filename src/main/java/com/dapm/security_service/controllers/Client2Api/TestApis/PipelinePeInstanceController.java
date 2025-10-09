@@ -52,24 +52,19 @@ public class PipelinePeInstanceController {
 //                .orElseGet(() -> ResponseEntity.notFound().build());
 //    }
 
-    @GetMapping("/lock-status")
-    public ResponseEntity<String> getLockStatus() {
-        String lockStatus = petriNetRepository.getLock();
-        return ResponseEntity.ok(lockStatus);
-    }
-    @GetMapping("/petri-status")
-    public ResponseEntity<String> getPetriStatus() {
-        String petriStatus = petriNetRepository.getPetri();
-        return ResponseEntity.ok(petriStatus);
-    }
+//    @GetMapping("/petri-status")
+//    public ResponseEntity<String> getPetriStatus() {
+//        String petriStatus = petriNetRepository.getPetri();
+//        return ResponseEntity.ok(petriStatus);
+//    }
 
     @Autowired
     private PEInstanceRepository peInstanceRepository;
 
-    @GetMapping("/{instanceId}/petri-net")
+    @GetMapping("/{instanceId}/petri-nett")
     public ResponseEntity<String> getPetriNet(@PathVariable String instanceId) {
         System.out.println("Looking up instanceId: " + instanceId);
-//        var pe = peInstanceRepository.getInstance(instanceId);
+
         var pe = peInstanceRepository.getInstance(instanceId);
 
         try {
@@ -81,8 +76,8 @@ public class PipelinePeInstanceController {
         } catch (Exception e) {
             throw new RuntimeException("Error calling getLatestSvg()", e);
         }
-
     }
+
 
     // get pipeline name by name
     @GetMapping("/pipeline/{pipelineId}/petrinet-instance")
@@ -101,6 +96,40 @@ public class PipelinePeInstanceController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/{pipelineId}/petri-net")
+    public ResponseEntity<String> getPipelinePetriNet(@PathVariable String pipelineId) {
+        Pipeline pipeline = pipelineRepository.getPipeline(pipelineId);
+
+        if (pipeline == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Find the PetriNetSink instanceId in this pipeline
+        String instanceId = pipeline.getProcessingElements().entrySet().stream()
+                .filter(entry -> "PetriNetSink".equals(entry.getValue().getTemplateID()))
+                .map(Map.Entry::getKey) // take instanceId
+                .findFirst()
+                .orElse(null);
+
+        if (instanceId == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Use the same logic as your /{instanceId}/petri-net endpoint
+        var pe = peInstanceRepository.getInstance(instanceId);
+
+        try {
+            var method = pe.getClass().getMethod("getLatestSvg");
+            Object svg = method.invoke(pe);
+            return ResponseEntity.ok(svg != null ? svg.toString() : "");
+        } catch (NoSuchMethodException e) {
+            return ResponseEntity.badRequest().body("Instance does not support getLatestSvg()");
+        } catch (Exception e) {
+            throw new RuntimeException("Error calling getLatestSvg()", e);
+        }
+    }
+
 
 
 
