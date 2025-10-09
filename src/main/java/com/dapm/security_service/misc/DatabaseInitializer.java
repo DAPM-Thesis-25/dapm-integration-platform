@@ -163,7 +163,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         projectRolesSet.add(projectRole1);
         projectRolesSet.add(projectRole2);
         // Hey there I am new
-        Project p=createProjectIfNotExistStatic("dapm",org,projectRolesSet,PROJECT1_ID);
+        Project p=createProjectIfNotExistStatic("HospitalFlow",org,projectRolesSet,PROJECT1_ID);
 
 
 
