@@ -59,6 +59,53 @@ services:
     networks:
       - dapm_network
 
+
+  mongo_orga:
+    image: mongo:6
+    container_name: mongo-orga
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: dapm_user
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+      MONGO_INITDB_DATABASE: dapm_mapping_table
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_orga_data:/data/db
+    networks:
+      - dapm_network
+
+  mongo_orgb:
+    image: mongo:6
+    container_name: mongo-orgb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: dapm_user
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+      MONGO_INITDB_DATABASE: dapm_mapping_table
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_orgb_data:/data/db
+    networks:
+      - dapm_network
+
+  mongo_orgc:
+    image: mongo:6
+    container_name: mongo-orgc
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: dapm_user
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+      MONGO_INITDB_DATABASE: dapm_mapping_table
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongo_orgc_data:/data/db
+    networks:
+      - dapm_network
+
+
   dapm_orga:
     build: .
     container_name: orga
@@ -81,6 +128,8 @@ services:
       - ORG_KEYSTORE_PASS=OrgaPass123
       - ORG_KEY_ALIAS=orga-2025-08
       - ORG_KID=OrgA#2025-08
+      - SPRING_DATA_MONGODB_URI=mongodb://dapm_user:123456@mongo-orga:27017/dapm_mapping_table?authSource=admin
+
     volumes:
       - ./runtime-templates/orga:/runtime-templates
       - ./runtime-configs/orga:/runtime-configs
@@ -116,7 +165,7 @@ services:
       - ORG_KEYSTORE_PASS=OrgbPass456
       - ORG_KEY_ALIAS=orgb-2025-08
       - ORG_KID=OrgB#2025-08
-
+      - SPRING_DATA_MONGODB_URI=mongodb://dapm_user:123456@mongo-orgb:27017/dapm_mapping_table
     volumes:
       - ./runtime-templates/orgb:/runtime-templates
       - ./runtime-configs/orgb:/runtime-configs
@@ -148,6 +197,7 @@ services:
 
       # === point to Kafka inside docker network (NOT localhost) ===
       - organization.broker.port=kafka-C:9072
+      - SPRING_DATA_MONGODB_URI=mongodb://dapm_user:123456@mongo-orgc:27017/dapm_mapping_table
     volumes:
       - ./runtime-templates/orgc:/runtime-templates
       - ./runtime-configs/orgc:/runtime-configs
@@ -165,6 +215,9 @@ volumes:
   orgb_data:
   orgc_data:
   pgadmin_orga_data:
+  mongo_orga_data:
+  mongo_orgb_data:
+  mongo_orgc_data:
 
 networks:
   dapm_network:
