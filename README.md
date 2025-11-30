@@ -9,8 +9,7 @@
 ## 🛠️ Tech Stack
 - Backend: SpringBoot
 - Deployment: Docker containers
-- Database: Postgress
-- MongoDB
+- Database: Postgress, MongoDB
 
 ## 📦 Installation
 To run the project locally:
